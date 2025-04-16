@@ -1,5 +1,6 @@
 import requests
 import os
+import datetime
 
 tokens = {
     "WIF": "dogwifcoin",
@@ -12,15 +13,9 @@ tokens = {
 token_keys = list(tokens.keys())
 INVEST_AMOUNT = 100
 
-# Load token index
-index_file = "state.txt"
-if os.path.exists(index_file):
-    with open(index_file, "r") as f:
-        current_index = int(f.read().strip())
-else:
-    current_index = 0
-
-token_name = token_keys[current_index]
+# Use UTC hour to rotate
+current_hour = datetime.datetime.utcnow().hour
+token_name = token_keys[current_hour % len(token_keys)]
 token_id = tokens[token_name]
 
 try:
@@ -44,15 +39,10 @@ try:
     )
     print(tweet)
 
-    # Trigger IFTTT Webhook
+    # Trigger IFTTT webhook
     webhook_url = os.environ["IFTTT_WEBHOOK_URL"]
     response = requests.post(webhook_url, json={"value1": tweet})
     print(f"Webhook response: {response.status_code} {response.text}")
 
 except Exception as e:
     print(f"⚠️ Error with {token_name}: {e}")
-
-# Save next token index
-next_index = (current_index + 1) % len(token_keys)
-with open(index_file, "w") as f:
-    f.write(str(next_index))
