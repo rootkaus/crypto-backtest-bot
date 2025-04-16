@@ -8,10 +8,11 @@ tokens = {
     "TRUMP": "maga",
     "FARTCOIN": "fartcoin"
 }
+
 token_keys = list(tokens.keys())
 INVEST_AMOUNT = 100
 
-# Load token index from state file
+# Load token index
 index_file = "state.txt"
 if os.path.exists(index_file):
     with open(index_file, "r") as f:
@@ -28,7 +29,7 @@ try:
     prices = data["prices"]
 
     if not prices or len(prices) < 2:
-        raise Exception("Not enough data")
+        raise Exception("Not enough price data")
 
     old_price = prices[0][1]
     new_price = prices[-1][1]
@@ -43,15 +44,15 @@ try:
     )
     print(tweet)
 
-    # Send tweet text to IFTTT webhook
+    # Trigger IFTTT Webhook
     webhook_url = os.environ["IFTTT_WEBHOOK_URL"]
     response = requests.post(webhook_url, json={"value1": tweet})
-    response.raise_for_status()
+    print(f"Webhook response: {response.status_code} {response.text}")
 
 except Exception as e:
     print(f"⚠️ Error with {token_name}: {e}")
 
-# Save the next token index
+# Save next token index
 next_index = (current_index + 1) % len(token_keys)
 with open(index_file, "w") as f:
     f.write(str(next_index))
