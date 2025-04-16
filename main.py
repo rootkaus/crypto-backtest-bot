@@ -1,6 +1,6 @@
-import requests
 import os
-import tweepy
+import requests
+import json
 
 tokens = {
     "WIF": "dogwifcoin",
@@ -38,21 +38,34 @@ try:
     value_now = amount * new_price
     change_pct = ((value_now - INVEST_AMOUNT) / INVEST_AMOUNT) * 100
 
-    tweet = (
+    tweet_text = (
         f"1D Price Return — ${token_name}\n"
         f"${INVEST_AMOUNT} → ${value_now:,.2f} ({change_pct:+.2f}%)"
     )
-    print(tweet)
+    print(tweet_text)
 
-    # Authenticate using secrets from GitHub
-    auth = tweepy.OAuth1UserHandler(
-        os.environ["TWITTER_API_KEY"],
-        os.environ["TWITTER_API_SECRET"],
-        os.environ["TWITTER_ACCESS_TOKEN"],
-        os.environ["TWITTER_ACCESS_SECRET"]
+    # Twitter v2 API with Bearer Token
+    bearer_token = os.environ["TWITTER_BEARER_TOKEN"]
+
+    headers = {
+        "Authorization": f"Bearer {bearer_token}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "text": tweet_text
+    }
+
+    response = requests.post(
+        "https://api.twitter.com/2/tweets",
+        headers=headers,
+        data=json.dumps(payload)
     )
-    api = tweepy.API(auth)
-    api.update_status(tweet)
+
+    if response.status_code != 201:
+        raise Exception(f"Twitter API error {response.status_code}: {response.text}")
+    else:
+        print("✅ Tweet sent!")
 
 except Exception as e:
     print(f"⚠️ Error with {token_name}: {e}")
