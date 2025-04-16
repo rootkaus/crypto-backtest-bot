@@ -1,7 +1,7 @@
 import requests
-from replit import db
+import os
 
-# Tokens to rotate through
+# Your rotating tokens
 tokens = {
     "WIF": "dogwifcoin",
     "BONK": "bonk",
@@ -10,14 +10,21 @@ tokens = {
     "FARTCOIN": "fartcoin"
 }
 token_keys = list(tokens.keys())
+INVEST_AMOUNT = 100
 
-# Get current index from DB, default to 0
-current_index = db.get("current_index") or 0
+# Load index from file or default to 0
+index_file = "state.txt"
+if os.path.exists(index_file):
+    with open(index_file, "r") as f:
+        current_index = int(f.read().strip())
+else:
+    current_index = 0
+
+# Get current token
 token_name = token_keys[current_index]
 token_id = tokens[token_name]
 
-INVEST_AMOUNT = 100
-
+# Fetch prices + calculate gain
 try:
     url = f"https://api.coingecko.com/api/v3/coins/{token_id}/market_chart?vs_currency=usd&days=7"
     data = requests.get(url).json()
@@ -39,5 +46,7 @@ try:
 except Exception as e:
     print(f"⚠️ Error with {token_name}: {e}")
 
-# Update index for next run
-db["current_index"] = (current_index + 1) % len(token_keys)
+# Save new index for next run
+next_index = (current_index + 1) % len(token_keys)
+with open(index_file, "w") as f:
+    f.write(str(next_index))
