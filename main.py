@@ -26,7 +26,7 @@ token_id = tokens[token_name]
 
 # Fetch prices + calculate gain
 try:
-    url = f"https://api.coingecko.com/api/v3/coins/{token_id}/market_chart?vs_currency=usd&days=7"
+    url = f"https://api.coingecko.com/api/v3/coins/{token_id}/market_chart?vs_currency=usd&days=1"
     data = requests.get(url).json()
     prices = data["prices"]
 
@@ -41,7 +41,7 @@ try:
     change_pct = ((value_now - INVEST_AMOUNT) / INVEST_AMOUNT) * 100
 
     # Clean tweet-style output
-    print(f"7D Price Return — ${token_name}")
+    print(f"1D Price Return — ${token_name}")
     print(f"${INVEST_AMOUNT} → ${value_now:,.2f} ({change_pct:+.2f}%)")
 
 except Exception as e:
