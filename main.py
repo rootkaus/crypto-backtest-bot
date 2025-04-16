@@ -40,8 +40,9 @@ try:
     value_now = amount * new_price
     change_pct = ((value_now - INVEST_AMOUNT) / INVEST_AMOUNT) * 100
 
-    print(f"🪙 If you spent ${INVEST_AMOUNT} on ${token_name} 7 days ago, you’d have ${value_now:,.2f} today ({change_pct:+.2f}%)")
-    print("-" * 60)
+    # Clean tweet-style output
+    print(f"7D Price Return — ${token_name}")
+    print(f"${INVEST_AMOUNT} → ${value_now:,.2f} ({change_pct:+.2f}%)")
 
 except Exception as e:
     print(f"⚠️ Error with {token_name}: {e}")
