@@ -2,7 +2,6 @@ import requests
 import os
 import datetime
 
-# Token list (name -> address)
 tokens = {
     "WIF": "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
     "BONK": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
@@ -29,55 +28,54 @@ tokens = {
     "DEFIANT": "DPTP4fUfWuwVTgCmttWBu6Sy5B9TeCTBjc2YKgpDpump"
 }
 
-token_keys = list(tokens.keys())
 INVEST_AMOUNT = 100
+token_keys = list(tokens.keys())
 
-# ⏱️ Use current UTC HOUR to rotate through tokens
 now = datetime.datetime.utcnow()
-current_hour = now.hour
-token_name = token_keys[current_hour % len(token_keys)]
-token_id = tokens[token_name]
+hour = now.hour
 
-print(f"⏰ Bot started at UTC: {now.strftime('%Y-%m-%d %H:%M:%S')} | Hour: {current_hour}")
-print(f"🪙 Token selected: ${token_name} ({token_id})")
+# Try up to 5 tokens starting from this hour
+for i in range(5):
+    token_index = (hour + i) % len(token_keys)
+    token_name = token_keys[token_index]
+    token_id = tokens[token_name]
 
-try:
-    # 📊 Get 1-day historical price data
-    from_timestamp = int((now - datetime.timedelta(days=1)).timestamp())
-    url = f"https://public-api.birdeye.so/public/price/history?address={token_id}&from={from_timestamp}&interval=1h"
-    headers = {"X-API-KEY": os.environ["BIRDEYE_API_KEY"]}
+    print(f"\n🔄 Trying token: ${token_name} ({token_id})")
 
-    response = requests.get(url, headers=headers)
-    data = response.json()
-    prices = data.get("data", {}).get("items", [])
+    try:
+        from_timestamp = int((now - datetime.timedelta(days=1)).timestamp())
+        url = f"https://public-api.birdeye.so/public/price/history?address={token_id}&from={from_timestamp}&interval=1h"
+        headers = {"X-API-KEY": os.environ["BIRDEYE_API_KEY"]}
+        response = requests.get(url, headers=headers)
 
-    if not prices or len(prices) < 2:
-        raise Exception("Not enough price data")
+        data = response.json()
+        prices = data.get("data", {}).get("items", [])
+        if not prices or len(prices) < 2:
+            print("⚠️ Not enough price data, trying next token...")
+            continue
 
-    old_price = prices[0]["value"]
-    new_price = prices[-1]["value"]
+        old_price = prices[0]["value"]
+        new_price = prices[-1]["value"]
 
-    amount = INVEST_AMOUNT / old_price
-    value_now = amount * new_price
-    change_pct = ((value_now - INVEST_AMOUNT) / INVEST_AMOUNT) * 100
+        amount = INVEST_AMOUNT / old_price
+        value_now = amount * new_price
+        change_pct = ((value_now - INVEST_AMOUNT) / INVEST_AMOUNT) * 100
 
-    # 📝 Compose tweet
-    tweet = (
-        f"1D Price Return — ${token_name}\n"
-        f"${INVEST_AMOUNT} → ${value_now:,.2f} ({change_pct:+.2f}%)"
-    )
+        tweet = (
+            f"1D Price Return — ${token_name}\n"
+            f"${INVEST_AMOUNT} → ${value_now:,.2f} ({change_pct:+.2f}%)"
+        )
 
-    print("📤 Tweet to send:")
-    print(tweet)
+        print("📤 Sending tweet:")
+        print(tweet)
 
-    # 🔁 Send to IFTTT
-    webhook_url = os.environ["IFTTT_WEBHOOK_URL"]
-    res = requests.post(webhook_url, json={"value1": tweet})
+        webhook_url = os.environ["IFTTT_WEBHOOK_URL"]
+        res = requests.post(webhook_url, json={"value1": tweet})
+        if res.status_code == 200:
+            print("✅ Tweet sent successfully!")
+        else:
+            print(f"⚠️ IFTTT error: {res.status_code} — {res.text}")
+        break
 
-    if res.status_code == 200:
-        print("✅ Sent via IFTTT!")
-    else:
-        print(f"⚠️ IFTTT error: {res.status_code} — {res.text}")
-
-except Exception as e:
-    print(f"❌ Error during processing: {e}")
+    except Exception as e:
+        print(f"❌ Error on token {token_name}: {e}")
