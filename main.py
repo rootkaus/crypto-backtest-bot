@@ -1,8 +1,7 @@
 import requests
-import os
 import datetime
 
-# Verified 22-token list (CoinGecko ID)
+# Token list (name -> CoinGecko ID)
 tokens = {
     "WIF": "dogwifcoin",
     "BONK": "bonk",
@@ -17,20 +16,20 @@ tokens = {
     "MELANIA": "melania-meme",
     "FWOG": "fwog",
     "DADDY": "daddy-tate",
-    "MOODENG": "mood-engines",
+    "MOODENG": "moodeng",
     "WEN": "wen-solana",
     "ZEREBRO": "zerebro",
     "JAILSTOOL": "stool-prisondente",
     "GHIBLI": "ghiblification",
     "SLERF": "slerf",
     "CABAL": "cabal",
-    "DEFIANT": "defiant-2",
+    "DEFIANT": "defiant-2"
 }
 
-token_keys = list(tokens.keys())
 INVEST_AMOUNT = 100
+token_keys = list(tokens.keys())
 
-# UTC hour-based rotation
+# Rotate hourly
 now = datetime.datetime.utcnow()
 current_hour = now.hour
 token_name = token_keys[current_hour % len(token_keys)]
@@ -40,22 +39,13 @@ print(f"🕐 Bot started at: {now.strftime('%Y-%m-%d %H:%M:%S')} | Hour: {curren
 print(f"🪙 Selected token: ${token_name} ({token_id})")
 
 try:
-    # Get 1D historical prices at hourly interval
-    url = f"https://api.coingecko.com/api/v3/coins/{token_id}/market_chart?vs_currency=usd&days=1&interval=hourly"
-    print("🔍 Fetching price data from CoinGecko...")
+    print("🔍 Fetching 24h price change from CoinGecko...")
+    url = f"https://api.coingecko.com/api/v3/coins/{token_id}"
     res = requests.get(url)
     data = res.json()
-    prices = data.get("prices", [])
 
-    if not prices or len(prices) < 2:
-        raise Exception("Not enough price data.")
-
-    old_price = prices[0][1]
-    new_price = prices[-1][1]
-
-    amount = INVEST_AMOUNT / old_price
-    value_now = amount * new_price
-    change_pct = ((value_now - INVEST_AMOUNT) / INVEST_AMOUNT) * 100
+    change_pct = data["market_data"]["price_change_percentage_24h"]
+    value_now = INVEST_AMOUNT * (1 + change_pct / 100)
 
     tweet = (
         f"1D Price Return — ${token_name}\n"
