@@ -2,43 +2,57 @@ import requests
 import os
 import datetime
 
-# Confirmed working tokens (name -> address)
+# Token name -> CoinGecko ID mapping
 tokens = {
-    "WIF": "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
-    "BONK": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-    "POPCAT": "7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",
-    "TRUMP": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN"
+    "WIF": "dogwifcoin",
+    "BONK": "bonk",
+    "POPCAT": "popcat",
+    "TRUMP": "maga",
+    "HARAMBE": "harambe-on-solana",
+    "FARTCOIN": "fartcoin",
+    "PAIN": "pain-on-solana",
+    "MEW": "mew-token",
+    "AI16Z": "ai16z",
+    "PNUT": "peanutbutter",
+    "MELANIA": "melania-trump",
+    "FWOG": "fwog",
+    "DADDY": "daddy",
+    "MOODENG": "moodeng",
+    "WEN": "wen",
+    "ZEREBRO": "zerebro",
+    "JAILSTOOL": "jailstool",
+    "GHIBLI": "ghibli",
+    "SLERF": "slerf",
+    "ITALIANROT": "italian-rot",
+    "KAPIBALA": "kapibala",
+    "CABAL": "cabal-token",
+    "DEFIANT": "defiant"
 }
 
-INVEST_AMOUNT = 100
 token_keys = list(tokens.keys())
+INVEST_AMOUNT = 100
 
-# UTC hour to rotate
+# Rotate based on current UTC hour
 now = datetime.datetime.utcnow()
 current_hour = now.hour
 token_name = token_keys[current_hour % len(token_keys)]
 token_id = tokens[token_name]
 
-print(f"🕐 Bot started at: {now.strftime('%Y-%m-%d %H:%M:%S')} | Hour: {current_hour}")
+print(f"⏰ Bot started at: {now.strftime('%Y-%m-%d %H:%M:%S')} | Hour: {current_hour}")
 print(f"🪙 Selected token: ${token_name} ({token_id})")
 
 try:
-    from_timestamp = int((now - datetime.timedelta(days=1)).timestamp())
-    url = f"https://public-api.birdeye.so/public/price/history?address={token_id}&from={from_timestamp}&interval=1h"
-    headers = { "X-API-KEY": os.environ["BIRDEYE_API_KEY"] }
-
-    print("🔍 Fetching price data...")
-    res = requests.get(url, headers=headers)
+    url = f"https://api.coingecko.com/api/v3/coins/{token_id}/market_chart?vs_currency=usd&days=1"
+    print("🔍 Fetching price data from CoinGecko...")
+    res = requests.get(url)
     data = res.json()
+    prices = data.get("prices", [])
 
-    print("📦 Raw response keys:", data.keys())
-
-    prices = data.get("data", {}).get("items", [])
     if not prices or len(prices) < 2:
         raise Exception("Not enough price data.")
 
-    old_price = prices[0]["value"]
-    new_price = prices[-1]["value"]
+    old_price = prices[0][1]
+    new_price = prices[-1][1]
 
     amount = INVEST_AMOUNT / old_price
     value_now = amount * new_price
