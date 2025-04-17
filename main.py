@@ -1,5 +1,6 @@
 import requests
 import datetime
+import os  # ← this was missing!
 
 # Token list (name -> CoinGecko ID)
 tokens = {
