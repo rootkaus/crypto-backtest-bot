@@ -1,9 +1,9 @@
-name: Run Crypto Bot
+name: Run Crypto Bot (Testing)
 
 on:
   schedule:
-    - cron: "0 * * * *"  # Every hour
-  workflow_dispatch:      # Allows manual run from GitHub UI
+    - cron: "*/5 * * * *"  # Runs every 5 minutes
+  workflow_dispatch:       # Allows manual trigger from GitHub UI
 
 jobs:
   run-bot:
