@@ -24,4 +24,5 @@ jobs:
       - name: Run bot
         env:
           IFTTT_WEBHOOK_URL: ${{ secrets.IFTTT_WEBHOOK_URL }}
+          BIRDEYE_API_KEY: ${{ secrets.BIRDEYE_API_KEY }}
         run: python main.py
