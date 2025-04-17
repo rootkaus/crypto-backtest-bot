@@ -13,14 +13,13 @@ tokens = {
 token_keys = list(tokens.keys())
 INVEST_AMOUNT = 100
 
-# Get full UTC time and extract current hour
+# Use current UTC minute to rotate fast (for test mode)
 now = datetime.datetime.utcnow()
-current_hour = now.hour
-print(f"⏰ Bot started at UTC time: {now.strftime('%Y-%m-%d %H:%M:%S')} (UTC hour: {current_hour})")
-
-# Determine which token to post
-token_name = token_keys[current_hour % len(token_keys)]
+current_minute = now.minute
+token_name = token_keys[current_minute % len(token_keys)]
 token_id = tokens[token_name]
+
+print(f"⏰ Bot started at UTC time: {now.strftime('%Y-%m-%d %H:%M:%S')} (UTC minute: {current_minute})")
 print(f"🐶 Selected token: {token_name} ({token_id})")
 
 try:
