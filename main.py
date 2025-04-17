@@ -2,7 +2,6 @@ import requests
 import os
 import datetime
 
-# Fresh 24-token Solana memecoin list (name -> address)
 tokens = {
     "WIF": "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
     "BONK": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
@@ -32,12 +31,10 @@ tokens = {
 token_keys = list(tokens.keys())
 INVEST_AMOUNT = 100
 
-# UTC hour selection
 now = datetime.datetime.utcnow()
 current_hour = now.hour
 print(f"🕐 Bot started at: {now.strftime('%Y-%m-%d %H:%M:%S')} | Hour: {current_hour}")
 
-# Loop through all tokens if the selected one fails
 for i in range(len(token_keys)):
     token_name = token_keys[(current_hour + i) % len(token_keys)]
     token_id = tokens[token_name]
@@ -45,7 +42,7 @@ for i in range(len(token_keys)):
 
     try:
         from_timestamp = int((now - datetime.timedelta(days=1)).timestamp())
-        url = f"https://public-api.birdeye.so/public/price/history?address={token_id}&from={from_timestamp}&interval=1h"
+        url = f"https://public-api.birdeye.so/public/price/history?address={token_id}&from={from_timestamp}&interval=5m"
         headers = { "X-API-KEY": os.environ["BIRDEYE_API_KEY"] }
 
         print("🔍 Fetching price data...")
@@ -80,7 +77,7 @@ for i in range(len(token_keys)):
         else:
             print(f"⚠️ IFTTT error: {webhook_res.status_code} - {webhook_res.text}")
 
-        break  # success! stop trying others
+        break
 
     except Exception as e:
         print(f"❌ Error during processing: {e}\n")
