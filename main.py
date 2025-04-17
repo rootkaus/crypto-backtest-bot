@@ -49,8 +49,20 @@ try:
     change_pct = data["market_data"]["price_change_percentage_24h"]
     value_now = INVEST_AMOUNT * (1 + change_pct / 100)
 
+    # Emoji logic
+    if change_pct >= 10:
+        emoji = "🔥"
+    elif 3 <= change_pct < 10:
+        emoji = "📈"
+    elif -10 < change_pct <= -3:
+        emoji = "📉"
+    elif change_pct <= -10:
+        emoji = "💀"
+    else:
+        emoji = ""
+
     tweet = (
-        f"1D Price Return — ${token_name}\n"
+        f"1D Price Return — ${token_name} {emoji}\n"
         f"${INVEST_AMOUNT} → ${value_now:,.2f} ({change_pct:+.2f}%)"
     )
 
