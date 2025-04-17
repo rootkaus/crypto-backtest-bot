@@ -2,6 +2,7 @@ import requests
 import os
 import datetime
 
+# Fresh 24-token Solana memecoin list (name -> address)
 tokens = {
     "WIF": "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
     "BONK": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
@@ -28,30 +29,32 @@ tokens = {
     "DEFIANT": "DPTP4fUfWuwVTgCmttWBu6Sy5B9TeCTBjc2YKgpDpump"
 }
 
-INVEST_AMOUNT = 100
 token_keys = list(tokens.keys())
+INVEST_AMOUNT = 100
 
+# UTC hour selection
 now = datetime.datetime.utcnow()
-hour = now.hour
+current_hour = now.hour
+print(f"🕐 Bot started at: {now.strftime('%Y-%m-%d %H:%M:%S')} | Hour: {current_hour}")
 
-# Try up to 5 tokens starting from this hour
-for i in range(5):
-    token_index = (hour + i) % len(token_keys)
-    token_name = token_keys[token_index]
+# Loop through all tokens if the selected one fails
+for i in range(len(token_keys)):
+    token_name = token_keys[(current_hour + i) % len(token_keys)]
     token_id = tokens[token_name]
-
-    print(f"\n🔄 Trying token: ${token_name} ({token_id})")
+    print(f"🪙 Trying token: ${token_name} ({token_id})")
 
     try:
         from_timestamp = int((now - datetime.timedelta(days=1)).timestamp())
         url = f"https://public-api.birdeye.so/public/price/history?address={token_id}&from={from_timestamp}&interval=1h"
-        headers = {"X-API-KEY": os.environ["BIRDEYE_API_KEY"]}
-        response = requests.get(url, headers=headers)
+        headers = { "X-API-KEY": os.environ["BIRDEYE_API_KEY"] }
 
-        data = response.json()
+        print("🔍 Fetching price data...")
+        res = requests.get(url, headers=headers)
+        data = res.json()
         prices = data.get("data", {}).get("items", [])
+
         if not prices or len(prices) < 2:
-            print("⚠️ Not enough price data, trying next token...")
+            print("⚠️ Not enough price data, trying next token...\n")
             continue
 
         old_price = prices[0]["value"]
@@ -66,16 +69,18 @@ for i in range(5):
             f"${INVEST_AMOUNT} → ${value_now:,.2f} ({change_pct:+.2f}%)"
         )
 
-        print("📤 Sending tweet:")
+        print("📤 Tweet content:")
         print(tweet)
 
         webhook_url = os.environ["IFTTT_WEBHOOK_URL"]
-        res = requests.post(webhook_url, json={"value1": tweet})
-        if res.status_code == 200:
-            print("✅ Tweet sent successfully!")
+        webhook_res = requests.post(webhook_url, json={"value1": tweet})
+
+        if webhook_res.status_code == 200:
+            print("✅ Tweet sent via IFTTT successfully!")
         else:
-            print(f"⚠️ IFTTT error: {res.status_code} — {res.text}")
-        break
+            print(f"⚠️ IFTTT error: {webhook_res.status_code} - {webhook_res.text}")
+
+        break  # success! stop trying others
 
     except Exception as e:
-        print(f"❌ Error on token {token_name}: {e}")
+        print(f"❌ Error during processing: {e}\n")
