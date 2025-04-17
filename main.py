@@ -4,20 +4,21 @@ import datetime
 
 # Token list (name -> address)
 tokens = {
-    "WIF": "Es9vMFrzasXbU9CNRVvn9qxUt6G3Aay6He6MoY7V9N6i",
-    "BONK": "DezX1K7RY1LT9TT3pS9enF7kNB2nXpsQ8cY3dPAgEv7t",
-    "POPCAT": "8cxtTZijAX38Az8GUG9m3z8j3U6q4CZy3EJWFiD8jGmh",
-    "TRUMP": "9rA2GHTRaQ5zWdPV3LhK6UM27yXxCe8vW8z8tb6gzQvi",
-    "FARTCOIN": "9ZmpivZzPgbYm8JbEt3xjXciWok1Yj2vnk7r8FBHb5fU",
-    "PAIN": "GVxLJHP5v57AFQ6QEjG7RT1U9kJMYN24EBeEUxBd5KeD",
-    "MEW": "2xsPmn8bRZzNPRFY62qT7nPfrVP2RD5n3J9SRT8WQuFq",
+    "WIF": "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
+    "BONK": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+    "POPCAT": "7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",
+    "TRUMP": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+    "HARAMBE": "Fch1oixTPri8zxBnmdCEADoJW2toyFHxqDZacQkwdvSP",
+    "FARTCOIN": "9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump",
+    "PAIN": "1Qf8gESP4i6CFNWerUSDdLKJ9U1LpqTYvjJ2MM4pain",
+    "MEW": "MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5",
     "AI16Z": "HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC",
-    "PNUT": "C6jdLE1N5Ub8EfX9xnGHiQWdGZ6UV9axLfS6gEbPbgpp",
-    "MELANIA": "G8kHJEMQLnyrurUXu3uZREAS6VXZmgX4q3qxvbgPf8Hd",
-    "FWOG": "FwogFwogFwogFwogFwogFwogFwogFwogFwogFwog",
-    "DADDY": "9y64Uk9tZwF2oyyXjdtDzKnA6nnP6u44QjEcz3bUzNbe",
-    "MOODENG": "7s5CvGEER36jBJoLzyHgkiZtwBAJcZibzBnsvcdTb2cT",
-    "WEN": "wenxWENxWENxWENxWENxWENxWENxWENxWENxWENxWENx",
+    "PNUT": "2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump",
+    "MELANIA": "FUAfBo2jgks6gB4Z4LfZkqSZgzNucisEHqnNebaRxM1P",
+    "FWOG": "A8C3xuqscfmyLrte3VmTqrAq8kgMASius9AFNANwpump",
+    "DADDY": "4Cnk9EPnW5ixfLZatCPJjDB1PUtcRpVVgTQukm9epump",
+    "MOODENG": "ED5nyyWEzpPPiWimP8vYm7sD7TD3LAt3Q3gRTWHzPJBY",
+    "WEN": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
     "ZEREBRO": "8x5VqbHA8D7NkD52uNuS5nnt3PwA8pLD34ymskeSo2Wn",
     "JAILSTOOL": "AxriehR6Xw3adzHopnvMn7GcpRFcD41ddpiTWMg6pump",
     "GHIBLI": "4TBi66vi32S7J8X1A6eWfaLHYmUXu7CStcEmsJQdpump",
@@ -31,34 +32,27 @@ tokens = {
 token_keys = list(tokens.keys())
 INVEST_AMOUNT = 100
 
-# Use UTC minute to rotate fast (for testing)
+# ⏱️ Use current UTC HOUR to rotate through tokens
 now = datetime.datetime.utcnow()
-current_minute = now.minute
-token_name = token_keys[current_minute % len(token_keys)]
+current_hour = now.hour
+token_name = token_keys[current_hour % len(token_keys)]
 token_id = tokens[token_name]
 
-print(f"⏰ Bot started at UTC time: {now.strftime('%Y-%m-%d %H:%M:%S')} (UTC minute: {current_minute})")
-print(f"🪙 Token: ${token_name} ({token_id})")
+print(f"⏰ Bot started at UTC: {now.strftime('%Y-%m-%d %H:%M:%S')} | Hour: {current_hour}")
+print(f"🪙 Token selected: ${token_name} ({token_id})")
 
 try:
-    print("🧪 Fetching price history from Birdeye...")
-
+    # 📊 Get 1-day historical price data
     from_timestamp = int((now - datetime.timedelta(days=1)).timestamp())
     url = f"https://public-api.birdeye.so/public/price/history?address={token_id}&from={from_timestamp}&interval=1h"
-
-    headers = {
-        "X-API-KEY": os.environ["BIRDEYE_API_KEY"]
-    }
+    headers = {"X-API-KEY": os.environ["BIRDEYE_API_KEY"]}
 
     response = requests.get(url, headers=headers)
-    print("📦 Raw API response:")
-    print(response.text)
-
     data = response.json()
     prices = data.get("data", {}).get("items", [])
 
     if not prices or len(prices) < 2:
-        raise Exception("Not enough price data.")
+        raise Exception("Not enough price data")
 
     old_price = prices[0]["value"]
     new_price = prices[-1]["value"]
@@ -67,21 +61,23 @@ try:
     value_now = amount * new_price
     change_pct = ((value_now - INVEST_AMOUNT) / INVEST_AMOUNT) * 100
 
+    # 📝 Compose tweet
     tweet = (
         f"1D Price Return — ${token_name}\n"
         f"${INVEST_AMOUNT} → ${value_now:,.2f} ({change_pct:+.2f}%)"
     )
 
-    print("📤 Tweet content:")
+    print("📤 Tweet to send:")
     print(tweet)
 
+    # 🔁 Send to IFTTT
     webhook_url = os.environ["IFTTT_WEBHOOK_URL"]
     res = requests.post(webhook_url, json={"value1": tweet})
 
     if res.status_code == 200:
-        print("✅ Tweet sent via IFTTT successfully!")
+        print("✅ Sent via IFTTT!")
     else:
-        print(f"⚠️ IFTTT response error: {res.status_code} - {res.text}")
+        print(f"⚠️ IFTTT error: {res.status_code} — {res.text}")
 
 except Exception as e:
-    print(f"❌ Error: {e}")
+    print(f"❌ Error during processing: {e}")
