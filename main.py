@@ -1,14 +1,13 @@
 import requests
 import datetime
-import os  # ← this was missing!
+import os
 
-# Token list (name -> CoinGecko ID)
 tokens = {
     "WIF": "dogwifcoin",
     "BONK": "bonk",
     "POPCAT": "popcat",
     "TRUMP": "official-trump",
-    "HARAMBE": "harambe",
+    "HARAMBE": "harambe-on-solana",
     "FARTCOIN": "fartcoin",
     "PAIN": "pain",
     "MEW": "mew",
@@ -17,20 +16,22 @@ tokens = {
     "MELANIA": "melania-meme",
     "FWOG": "fwog",
     "DADDY": "daddy-tate",
-    "MOODENG": "moodeng",
+    "MOODENG": "moo-deng",
     "WEN": "wen-solana",
     "ZEREBRO": "zerebro",
     "JAILSTOOL": "stool-prisondente",
     "GHIBLI": "ghiblification",
     "SLERF": "slerf",
     "CABAL": "cabal",
-    "DEFIANT": "defiant-2"
+    "DEFIANT": "defiant-2",
+    "PENGU": "pudgy-penguins",
+    "GIGACHAD": "gigachad-2",
+    "PONKE": "ponke"
 }
 
 INVEST_AMOUNT = 100
 token_keys = list(tokens.keys())
 
-# Rotate hourly
 now = datetime.datetime.utcnow()
 current_hour = now.hour
 token_name = token_keys[current_hour % len(token_keys)]
