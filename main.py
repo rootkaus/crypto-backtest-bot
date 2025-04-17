@@ -2,37 +2,30 @@ import requests
 import os
 import datetime
 
-# Token name -> CoinGecko ID mapping
 tokens = {
     "WIF": "dogwifcoin",
     "BONK": "bonk",
     "POPCAT": "popcat",
     "TRUMP": "maga",
-    "HARAMBE": "harambe-on-solana",
     "FARTCOIN": "fartcoin",
-    "PAIN": "pain-on-solana",
-    "MEW": "mew-token",
     "AI16Z": "ai16z",
     "PNUT": "peanutbutter",
     "MELANIA": "melania-trump",
     "FWOG": "fwog",
     "DADDY": "daddy",
-    "MOODENG": "moodeng",
     "WEN": "wen",
     "ZEREBRO": "zerebro",
-    "JAILSTOOL": "jailstool",
     "GHIBLI": "ghibli",
     "SLERF": "slerf",
-    "ITALIANROT": "italian-rot",
     "KAPIBALA": "kapibala",
     "CABAL": "cabal-token",
     "DEFIANT": "defiant"
+    # Optional: Add more once confirmed live on CG
 }
 
 token_keys = list(tokens.keys())
 INVEST_AMOUNT = 100
 
-# Rotate based on current UTC hour
 now = datetime.datetime.utcnow()
 current_hour = now.hour
 token_name = token_keys[current_hour % len(token_keys)]
