@@ -52,18 +52,18 @@ try:
     # Emoji logic
     if change_pct >= 10:
         emoji = "🔥"
-    elif 3 <= change_pct < 10:
+    elif change_pct >= 3:
         emoji = "📈"
-    elif -10 < change_pct <= -3:
-        emoji = "📉"
     elif change_pct <= -10:
         emoji = "💀"
+    elif change_pct <= -3:
+        emoji = "📉"
     else:
         emoji = ""
 
     tweet = (
-        f"1D Price Return — ${token_name} {emoji}\n"
-        f"${INVEST_AMOUNT} → ${value_now:,.2f} ({change_pct:+.2f}%)"
+        f"1D Price Return — ${token_name}\n"
+        f"${INVEST_AMOUNT} → ${value_now:,.2f} ({change_pct:+.2f}%) {emoji}"
     )
 
     print("📤 Tweet content:")
