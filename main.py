@@ -7,17 +7,17 @@ tokens = {
     "BONK": "bonk",
     "POPCAT": "popcat",
     "TRUMP": "official-trump",
-    "HARAMBE": "harambe-on-solana",
+    "HARAMBE": "harambe-2",
     "FARTCOIN": "fartcoin",
     "PAIN": "pain",
-    "MEW": "mew",
+    "MEW": "cat-in-a-dogs-world",
     "AI16Z": "ai16z",
     "PNUT": "peanut-the-squirrel",
     "MELANIA": "melania-meme",
     "FWOG": "fwog",
     "DADDY": "daddy-tate",
     "MOODENG": "moo-deng",
-    "WEN": "wen-solana",
+    "WEN": "wen-4",
     "ZEREBRO": "zerebro",
     "JAILSTOOL": "stool-prisondente",
     "GHIBLI": "ghiblification",
@@ -45,6 +45,9 @@ try:
     url = f"https://api.coingecko.com/api/v3/coins/{token_id}"
     res = requests.get(url)
     data = res.json()
+
+    if "market_data" not in data or "price_change_percentage_24h" not in data["market_data"]:
+        raise ValueError("❌ 'market_data' or 'price_change_percentage_24h' not found in API response")
 
     change_pct = data["market_data"]["price_change_percentage_24h"]
     value_now = INVEST_AMOUNT * (1 + change_pct / 100)
