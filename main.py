@@ -80,7 +80,7 @@ try:
         if len(daily_volumes) >= 2:
             avg_7d_volume = sum(daily_volumes[:-1]) / (len(daily_volumes) - 1)
             volume_diff_pct = ((volume_24h - avg_7d_volume) / avg_7d_volume) * 100
-            volume_trend = f"[{abs(volume_diff_pct):.1f}% {'>' if volume_diff_pct > 0 else '<'} 7d avg.]"
+            volume_trend = f"[{abs(volume_diff_pct):.1f}% {'>' if volume_diff_pct > 0 else '<'} 7d avg]"
         else:
             volume_trend = ""
     else:
