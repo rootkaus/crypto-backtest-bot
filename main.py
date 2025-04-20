@@ -1,4 +1,4 @@
-vimport requests
+import requests
 import datetime
 import os
 
