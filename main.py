@@ -42,7 +42,7 @@ def format_price_dynamic(p):
         return f"{p:.3f}"
     s = f"{p:.12f}"
     dec = s.split(".")[1]
-    nz = next((i for i,c in enumerate(dec) if c!="0"), len(dec))
+    nz = next((i for i, c in enumerate(dec) if c != "0"), len(dec))
     digits = dec[nz:nz+3]
     return f"0.{dec[:nz]}{digits}"
 
@@ -69,18 +69,23 @@ try:
 
     # 2) fetch yesterday 24 h volume
     vol_yesterday = get_yesterday_volume(token_id, now)
-    if vol_yesterday and vol_yesterday>0:
+    if vol_yesterday and vol_yesterday > 0:
         vol_diff_pct = (vol_today - vol_yesterday) / vol_yesterday * 100
         vol_trend = f"[{vol_diff_pct:+.1f}%]"
     else:
         vol_trend = "[N/A]"
 
     # 3) price emoji
-    if price_pct >= 10:   emoji = "🔥"
-    elif price_pct >= 3:  emoji = "📈"
-    elif price_pct <= -10: emoji = "💀"
-    elif price_pct <= -3: emoji = "📉"
-    else:                 emoji = ""
+    if price_pct >= 10:
+        emoji = "🔥"
+    elif price_pct >= 3:
+        emoji = "📈"
+    elif price_pct <= -10:
+        emoji = "💀"
+    elif price_pct <= -3:
+        emoji = "📉"
+    else:
+        emoji = ""
 
     # 4) compose tweet
     tweet = (
