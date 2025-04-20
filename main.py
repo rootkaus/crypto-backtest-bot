@@ -51,7 +51,6 @@ try:
     ath_change = market_data["ath_change_percentage"]["usd"]
     atl_change = market_data["atl_change_percentage"]["usd"]
     volume = market_data["total_volume"]["usd"]
-    volume_pct = market_data["volume_change_24h"]
     market_cap = market_data["market_cap"]["usd"]
 
     value_now = INVEST_AMOUNT * (1 + price_pct / 100)
@@ -68,13 +67,13 @@ try:
     else:
         emoji = ""
 
-    # Format tweet
+    # Format tweet (removed volume_pct)
     tweet = (
         f"📊 DEGEN DAILY — ft. ${token_name.lower()} {twitter_handle}\n\n"
         f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%]\n\n"
         f"💵 Price: ${price:.4f} | Market Cap: ${market_cap:,.0f}\n"
         f"⛏️ ATL ↑ {abs(atl_change):,.0f}% | ATH ↓ {abs(ath_change):.0f}%\n"
-        f"🔊 Volume [24h]: ${volume/1_000_000:.1f}M [{volume_pct:+.1f}%]\n\n"
+        f"🔊 Volume [24h]: ${volume/1_000_000:.1f}M\n\n"
         f"New breakdown same time tomorrow! {emoji}"
     )
 
