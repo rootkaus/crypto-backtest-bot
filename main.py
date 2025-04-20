@@ -51,7 +51,7 @@ def format_price_dynamic(p):
         return f"0.{decimals[:non_zero_index]}{digits_to_show}"
 
 try:
-    # Fetch main token data
+    # Fetch coin data
     url = f"https://api.coingecko.com/api/v3/coins/{token_id}"
     res = requests.get(url)
     data = res.json()
@@ -64,31 +64,32 @@ try:
     market_cap = market_data["market_cap"]["usd"]
     value_now = INVEST_AMOUNT * (1 + price_pct / 100)
 
-    # Volume analysis using 48h data
+    # Fetch 2-day volume history (hourly)
     volume_url = f"https://api.coingecko.com/api/v3/coins/{token_id}/market_chart?vs_currency=usd&days=2"
     volume_res = requests.get(volume_url)
-    vol_data = volume_res.json().get("total_volumes", [])
+    volume_data = volume_res.json().get("total_volumes", [])
 
-    if len(vol_data) >= 49:  # 24h + 24h + 1
-        v0 = vol_data[0][1]
-        v24 = vol_data[24][1]
-        v48 = vol_data[48][1]
+    # Get latest timestamp
+    now_ts = volume_data[-1][0]
+    one_day_ms = 24 * 60 * 60 * 1000
 
-        day1 = v24 - v0
-        day2 = v48 - v24
+    # Split into two days
+    day1_volume = 0
+    day2_volume = 0
+    for ts, vol in volume_data:
+        if ts >= now_ts - one_day_ms:
+            day2_volume += vol
+        else:
+            day1_volume += vol
 
-        print(f"📊 Volume Debug → Day 1: ${day1:,.2f}, Day 2: ${day2:,.2f}")
-
-        volume_24h = day2
-        try:
-            vol_pct_change = ((day2 - day1) / day1) * 100
-            volume_trend = f"[{vol_pct_change:+.1f}%]"
-        except ZeroDivisionError:
-            volume_trend = ""
-    else:
-        print("⚠️ Not enough volume data points (need 49)")
-        volume_24h = market_data["total_volume"]["usd"]
+    volume_24h = day2_volume
+    try:
+        vol_pct_change = ((day2_volume - day1_volume) / day1_volume) * 100
+        volume_trend = f"[{vol_pct_change:+.1f}%]"
+    except ZeroDivisionError:
         volume_trend = ""
+
+    print(f"📊 Volume Debug → Day 1: ${day1_volume:,.2f}, Day 2: ${day2_volume:,.2f}")
 
     # Emoji based on price %
     if price_pct >= 10:
@@ -102,7 +103,7 @@ try:
     else:
         emoji = ""
 
-    # Format Tweet
+    # Final tweet
     tweet = (
         f"DEGEN DAILY — ft. ${token_name.lower()} {twitter_handle}\n\n"
         f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%] {emoji}\n\n"
