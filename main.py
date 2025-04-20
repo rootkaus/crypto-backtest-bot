@@ -82,11 +82,11 @@ try:
     # Format tweet
     tweet = (
         f"DEGEN DAILY — ft. ${token_name.lower()} {twitter_handle}\n\n"
-        f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%]\n\n"
+        f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%] {emoji}\n\n"
         f"🏷️ Price: ${format_price_dynamic(price)} | Market Cap: ${market_cap/1_000_000:.1f}M\n"
         f"↕️ ATL ↑ {abs(atl_change):,.0f}% | ATH ↓ {abs(ath_change):.0f}%\n"
         f"🔊 Volume [24h]: ${volume/1_000_000:.1f}M\n\n"
-        f"New breakdown same time tomorrow! {emoji}"
+        f"New breakdown same time tomorrow!"
     )
 
     print("📤 Tweet content:")
