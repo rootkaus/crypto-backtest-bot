@@ -2,6 +2,7 @@ import requests
 import datetime
 import os
 
+# Updated tokens with CoinGecko IDs and Twitter handles
 tokens = {
     "WIF": ("dogwifcoin", "@dogwifcoin"),
     "BONK": ("bonk", "@bonk_inu"),
@@ -36,7 +37,7 @@ token_name = token_keys[current_hour % len(token_keys)]
 token_id, twitter_handle = tokens[token_name]
 
 print(f"🕐 Bot started at: {now.strftime('%Y-%m-%d %H:%M:%S')} | Hour: {current_hour}")
-print(f"🪙 Selected token: ${token_name} ({token_id})")
+print(f"🌐 Selected token: ${token_name.upper()} ({token_id})")
 
 def format_price_dynamic(p):
     if p >= 1:
@@ -50,7 +51,7 @@ def format_price_dynamic(p):
         return f"0.{decimals[:non_zero_index]}{digits_to_show}"
 
 try:
-    # Main API call
+    # Fetch main token data
     url = f"https://api.coingecko.com/api/v3/coins/{token_id}"
     res = requests.get(url)
     data = res.json()
@@ -63,29 +64,33 @@ try:
     market_cap = market_data["market_cap"]["usd"]
     value_now = INVEST_AMOUNT * (1 + price_pct / 100)
 
-    # Volume diff: Day 2 vs Day 1
-    vol_url = f"https://api.coingecko.com/api/v3/coins/{token_id}/market_chart"
-    vol_res = requests.get(vol_url, params={"vs_currency": "usd", "days": 2, "interval": "hourly"})
-    vol_data = vol_res.json().get("total_volumes", [])
+    # Volume analysis using 48h data
+    volume_url = f"https://api.coingecko.com/api/v3/coins/{token_id}/market_chart?vs_currency=usd&days=2"
+    volume_res = requests.get(volume_url)
+    vol_data = volume_res.json().get("total_volumes", [])
 
-    if len(vol_data) >= 49:  # 24 + 24 + 1
+    if len(vol_data) >= 49:  # 24h + 24h + 1
         v0 = vol_data[0][1]
         v24 = vol_data[24][1]
         v48 = vol_data[48][1]
 
         day1 = v24 - v0
         day2 = v48 - v24
-        if day1 > 0:
+
+        print(f"📊 Volume Debug → Day 1: ${day1:,.2f}, Day 2: ${day2:,.2f}")
+
+        volume_24h = day2
+        try:
             vol_pct_change = ((day2 - day1) / day1) * 100
             volume_trend = f"[{vol_pct_change:+.1f}%]"
-        else:
+        except ZeroDivisionError:
             volume_trend = ""
-        volume_24h = day2
     else:
-        volume_trend = ""
+        print("⚠️ Not enough volume data points (need 49)")
         volume_24h = market_data["total_volume"]["usd"]
+        volume_trend = ""
 
-    # Emoji
+    # Emoji based on price %
     if price_pct >= 10:
         emoji = "🔥"
     elif price_pct >= 3:
@@ -97,6 +102,7 @@ try:
     else:
         emoji = ""
 
+    # Format Tweet
     tweet = (
         f"DEGEN DAILY — ft. ${token_name.lower()} {twitter_handle}\n\n"
         f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%] {emoji}\n\n"
