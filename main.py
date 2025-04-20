@@ -46,8 +46,31 @@ def format_price_dynamic(p):
     digits = dec[nz:nz+3]
     return f"0.{dec[:nz]}{digits}"
 
+def get_circumstantial_text(price_pct, vol_diff_pct):
+    if price_pct > 0 and vol_diff_pct > 0:
+        if price_pct > vol_diff_pct:
+            return "🧠 Price 🔺 > Volume 🔺\n🟰 Controlled Uptrend"
+        else:
+            return "🧠 Volume 🔺 > Price 🔺\n🟰 Accumulation Phase"
+    elif price_pct > 0 and vol_diff_pct < 0:
+        if price_pct > abs(vol_diff_pct):
+            return "🧠 Price 🔺 > Volume 🔻\n🟰 Low-Conviction Pump"
+        else:
+            return "🧠 Volume 🔻 > Price 🔺\n🟰 Fragile Push"
+    elif price_pct < 0 and vol_diff_pct > 0:
+        if abs(price_pct) > vol_diff_pct:
+            return "🧠 Price 🔻 > Volume 🔺\n🟰 Supply Flush"
+        else:
+            return "🧠 Volume 🔺 > Price 🔻\n🟰 Reactive Interest"
+    elif price_pct < 0 and vol_diff_pct < 0:
+        if abs(price_pct) > abs(vol_diff_pct):
+            return "🧠 Price 🔻 > Volume 🔻\n🟰 Soft Decline"
+        else:
+            return "🧠 Volume 🔻 > Price 🔻\n🟰 Dry Bleed"
+    else:
+        return ""
+
 try:
-    # 1) fetch main market_data
     r = requests.get(f"https://api.coingecko.com/api/v3/coins/{token_id}")
     m = r.json()["market_data"]
 
@@ -55,12 +78,11 @@ try:
     price_pct   = m["price_change_percentage_24h"]
     vol_today   = m["total_volume"]["usd"]
     mcap        = m["market_cap"]["usd"]
-    value_now   = INVEST_AMOUNT * (1 + price_pct/100)
+    value_now   = INVEST_AMOUNT * (1 + price_pct / 100)
 
-    # 2) fetch 1‑day volume chart and compare first vs last
     chart = requests.get(
         f"https://api.coingecko.com/api/v3/coins/{token_id}/market_chart",
-        params={"vs_currency":"usd","days":1}
+        params={"vs_currency": "usd", "days": 1}
     ).json().get("total_volumes", [])
     if chart:
         start_vol = chart[0][1]
@@ -68,12 +90,14 @@ try:
         if start_vol > 0:
             vol_diff_pct = (end_vol - start_vol) / start_vol * 100
             vol_trend = f"[{vol_diff_pct:+.1f}%]"
+            circum_text = f"\n\n{get_circumstantial_text(price_pct, vol_diff_pct)}"
         else:
             vol_trend = "[N/A]"
+            circum_text = ""
     else:
         vol_trend = ""
+        circum_text = ""
 
-    # 3) price emoji
     if price_pct >= 10:
         emoji = "🔥"
     elif price_pct >= 3:
@@ -85,19 +109,18 @@ try:
     else:
         emoji = ""
 
-    # 4) compose tweet (ATL/ATH removed)
     tweet = (
         f"DEGEN DAILY — ft. ${token_name.lower()} {twitter_handle}\n\n"
         f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%] {emoji}\n\n"
         f"🏷️ Price: ${format_price_dynamic(price)} | Market Cap: ${mcap/1e6:.1f}M\n"
-        f"🔊 Volume [24h]: ${vol_today/1e6:.1f}M {vol_trend}\n\n"
-        f"New breakdown same time tomorrow!"
+        f"🔊 Volume [24h]: ${vol_today/1e6:.1f}M {vol_trend}"
+        f"{circum_text}\n\n"
+        f"New alpha same time tomorrow!"
     )
 
     print("📤 Tweet content:")
     print(tweet)
 
-    # 5) dispatch
     res = requests.post(os.environ["IFTTT_WEBHOOK_URL"], json={"value1": tweet})
     print("✅ Tweet sent!" if res.ok else f"⚠️ IFTTT error: {res.status_code}")
 
