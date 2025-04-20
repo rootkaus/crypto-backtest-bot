@@ -1,4 +1,4 @@
-import requests
+vimport requests
 import datetime
 import os
 
@@ -46,13 +46,6 @@ def format_price_dynamic(p):
     digits = dec[nz:nz+3]
     return f"0.{dec[:nz]}{digits}"
 
-def get_yesterday_volume(token_id, dt):
-    yday = (dt - datetime.timedelta(days=1)).strftime("%d-%m-%Y")
-    hist = requests.get(
-        f"https://api.coingecko.com/api/v3/coins/{token_id}/history?date={yday}"
-    ).json()
-    return hist.get("market_data", {}).get("total_volume", {}).get("usd")
-
 try:
     # 1) fetch main market_data
     r = requests.get(f"https://api.coingecko.com/api/v3/coins/{token_id}")
@@ -64,13 +57,21 @@ try:
     mcap        = m["market_cap"]["usd"]
     value_now   = INVEST_AMOUNT * (1 + price_pct/100)
 
-    # 2) fetch yesterday 24h volume
-    vol_yesterday = get_yesterday_volume(token_id, now)
-    if vol_yesterday and vol_yesterday > 0:
-        vol_diff_pct = (vol_today - vol_yesterday) / vol_yesterday * 100
-        vol_trend = f"[{vol_diff_pct:+.1f}%]"
+    # 2) fetch 1‑day volume chart and compare first vs last
+    chart = requests.get(
+        f"https://api.coingecko.com/api/v3/coins/{token_id}/market_chart",
+        params={"vs_currency":"usd","days":1}
+    ).json().get("total_volumes", [])
+    if chart:
+        start_vol = chart[0][1]
+        end_vol   = chart[-1][1]
+        if start_vol > 0:
+            vol_diff_pct = (end_vol - start_vol) / start_vol * 100
+            vol_trend = f"[{vol_diff_pct:+.1f}%]"
+        else:
+            vol_trend = "[N/A]"
     else:
-        vol_trend = "[N/A]"
+        vol_trend = ""
 
     # 3) price emoji
     if price_pct >= 10:
