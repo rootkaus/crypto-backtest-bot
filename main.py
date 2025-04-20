@@ -1,4 +1,3 @@
-updated_script =
 import requests
 import datetime
 import os
