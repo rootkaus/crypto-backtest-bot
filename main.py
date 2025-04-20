@@ -55,7 +55,6 @@ try:
     data = res.json()
     market_data = data["market_data"]
 
-    # 1. Standard Metrics
     price = market_data["current_price"]["usd"]
     price_pct = market_data["price_change_percentage_24h"]
     ath_change = market_data["ath_change_percentage"]["usd"]
@@ -64,23 +63,28 @@ try:
     market_cap = market_data["market_cap"]["usd"]
     value_now = INVEST_AMOUNT * (1 + price_pct / 100)
 
-    # 2. Fetch 7-day volume data
-    chart_url = f"https://api.coingecko.com/api/v3/coins/{token_id}/market_chart?vs_currency=usd&days=7"
-    chart_res = requests.get(chart_url)
+    # 2. Fetch volume data to calculate past 24h volume
+    chart_url_2d = f"https://api.coingecko.com/api/v3/coins/{token_id}/market_chart?vs_currency=usd&days=2"
+    chart_res = requests.get(chart_url_2d)
     volume_data = chart_res.json().get("total_volumes", [])
 
-    # Extract daily volume
-    if len(volume_data) >= 7:
-        daily_volumes = []
-        last_ts = 0
-        for ts, vol in volume_data:
-            if ts - last_ts >= 86400000:  # ~1 day
-                daily_volumes.append(vol)
-                last_ts = ts
-        if len(daily_volumes) >= 2:
-            avg_7d_volume = sum(daily_volumes[:-1]) / (len(daily_volumes) - 1)
-            volume_diff_pct = ((volume_24h - avg_7d_volume) / avg_7d_volume) * 100
-            volume_trend = f"[{abs(volume_diff_pct):.1f}% {'>' if volume_diff_pct > 0 else '<'} 7d avg]"
+    if len(volume_data) >= 2:
+        volume_now = volume_data[-1][1]
+        one_day_ago_timestamp = volume_data[-1][0] - 86400000
+
+        # Find the closest timestamp to 24h ago
+        past_day_index = next((i for i, (ts, _) in enumerate(volume_data) if ts >= one_day_ago_timestamp), None)
+
+        if past_day_index is not None:
+            volume_prev_day = volume_data[past_day_index][1]
+            past_24h_volume = volume_prev_day
+            prev_day_volume = volume_now - past_24h_volume
+
+            if prev_day_volume > 0:
+                volume_change_pct = ((volume_24h - prev_day_volume) / prev_day_volume) * 100
+                volume_trend = f"[{volume_change_pct:+.1f}%]"
+            else:
+                volume_trend = ""
         else:
             volume_trend = ""
     else:
