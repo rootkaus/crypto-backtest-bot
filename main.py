@@ -55,7 +55,7 @@ try:
     data = res.json()
     market_data = data["market_data"]
 
-    # 1. Standard Metrics
+    # Standard Metrics
     price = market_data["current_price"]["usd"]
     price_pct = market_data["price_change_percentage_24h"]
     ath_change = market_data["ath_change_percentage"]["usd"]
@@ -64,44 +64,40 @@ try:
     market_cap = market_data["market_cap"]["usd"]
     value_now = INVEST_AMOUNT * (1 + price_pct / 100)
 
-    # 2. Volume difference [24h vs previous 24h]
-    chart_url_2d = f"https://api.coingecko.com/api/v3/coins/{token_id}/market_chart?vs_currency=usd&days=2"
-    chart_res = requests.get(chart_url_2d)
+    # Volume Difference (24h periods)
+    chart_url = f"https://api.coingecko.com/api/v3/coins/{token_id}/market_chart?vs_currency=usd&days=2"
+    chart_res = requests.get(chart_url)
     volume_data = chart_res.json().get("total_volumes", [])
 
-    if len(volume_data) >= 49:
-        volume_now = volume_data[-1][1]
-        volume_day_ago = volume_data[-49][1]  # ~24h ago
-        prev_24h_volume = volume_now - volume_day_ago
+    # Find midpoint (~24h ago)
+    mid_point_time = volume_data[0][0] + (volume_data[-1][0] - volume_data[0][0]) / 2
+    mid_point_index = min(range(len(volume_data)), key=lambda i: abs(volume_data[i][0] - mid_point_time))
 
-        if prev_24h_volume > 0:
-            volume_change_pct = ((volume_24h - prev_24h_volume) / prev_24h_volume) * 100
-            volume_trend = f"[{volume_change_pct:+.1f}%]"
-        else:
-            volume_trend = ""
+    volume_start = volume_data[0][1]
+    volume_mid = volume_data[mid_point_index][1]
+    volume_end = volume_data[-1][1]
+
+    # Clearly defined daily volumes
+    past_volume = volume_mid - volume_start
+    current_volume = volume_end - volume_mid
+
+    if past_volume > 0:
+        volume_diff_pct = ((current_volume - past_volume) / past_volume) * 100
+        volume_trend = f"[{volume_diff_pct:+.1f}%]"
     else:
-        volume_trend = ""
+        volume_trend = "[N/A]"
 
-    # 3. Emoji
-    if price_pct >= 10:
-        emoji = "🔥"
-    elif price_pct >= 3:
-        emoji = "📈"
-    elif price_pct <= -10:
-        emoji = "💀"
-    elif price_pct <= -3:
-        emoji = "📉"
-    else:
-        emoji = ""
+    # Emoji logic
+    emoji = "🔥" if price_pct >= 10 else "📈" if price_pct >= 3 else "💀" if price_pct <= -10 else "📉" if price_pct <= -3 else ""
 
-    # 4. Format Tweet
+    # Tweet formatting
     tweet = (
         f"DEGEN DAILY — ft. ${token_name.lower()} {twitter_handle}\n\n"
         f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%] {emoji}\n\n"
         f"🏷️ Price: ${format_price_dynamic(price)} | Market Cap: ${market_cap/1_000_000:.1f}M\n"
         f"↕️ ATL ↑ {abs(atl_change):,.0f}% | ATH ↓ {abs(ath_change):.0f}%\n"
         f"🔊 Volume [24h]: ${volume_24h/1_000_000:.1f}M {volume_trend}\n\n"
-        f"New breakdown same time tomorrow!"
+        "New breakdown same time tomorrow!"
     )
 
     print("📤 Tweet content:")
