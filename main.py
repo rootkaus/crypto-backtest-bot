@@ -47,7 +47,6 @@ def format_price_dynamic(p):
     return f"0.{dec[:nz]}{digits}"
 
 def get_yesterday_volume(token_id, dt):
-    # dt is a datetime for "today"; we want yesterday's date in dd-mm-YYYY
     yday = (dt - datetime.timedelta(days=1)).strftime("%d-%m-%Y")
     hist = requests.get(
         f"https://api.coingecko.com/api/v3/coins/{token_id}/history?date={yday}"
@@ -61,13 +60,11 @@ try:
 
     price       = m["current_price"]["usd"]
     price_pct   = m["price_change_percentage_24h"]
-    ath_chg     = m["ath_change_percentage"]["usd"]
-    atl_chg     = m["atl_change_percentage"]["usd"]
     vol_today   = m["total_volume"]["usd"]
     mcap        = m["market_cap"]["usd"]
     value_now   = INVEST_AMOUNT * (1 + price_pct/100)
 
-    # 2) fetch yesterday 24 h volume
+    # 2) fetch yesterday 24h volume
     vol_yesterday = get_yesterday_volume(token_id, now)
     if vol_yesterday and vol_yesterday > 0:
         vol_diff_pct = (vol_today - vol_yesterday) / vol_yesterday * 100
@@ -87,12 +84,11 @@ try:
     else:
         emoji = ""
 
-    # 4) compose tweet
+    # 4) compose tweet (ATL/ATH removed)
     tweet = (
         f"DEGEN DAILY — ft. ${token_name.lower()} {twitter_handle}\n\n"
         f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%] {emoji}\n\n"
         f"🏷️ Price: ${format_price_dynamic(price)} | Market Cap: ${mcap/1e6:.1f}M\n"
-        f"↕️ ATL ↑ {abs(atl_chg):.0f}% | ATH ↓ {abs(ath_chg):.0f}%\n"
         f"🔊 Volume [24h]: ${vol_today/1e6:.1f}M {vol_trend}\n\n"
         f"New breakdown same time tomorrow!"
     )
