@@ -71,7 +71,7 @@ def get_circumstantial_text(price_pct, vol_diff_pct):
         return ""
 
 def get_call_text(pattern_text, price_pct, vol_diff_pct):
-    if abs(price_pct) < 2.99 or abs(price_pct - vol_diff_pct) < 3:
+    if abs(price_pct) < 2 or abs(price_pct - vol_diff_pct) < 3:
         return "NOTHING"
     elif "Controlled Uptrend" in pattern_text:
         return "BUY"
@@ -86,7 +86,6 @@ try:
 
     price = m["current_price"]["usd"]
     price_pct = m["price_change_percentage_24h"]
-    vol_today = m["total_volume"]["usd"]
     mcap = m["market_cap"]["usd"]
     value_now = INVEST_AMOUNT * (1 + price_pct / 100)
 
@@ -105,9 +104,11 @@ try:
             call_text = get_call_text(pattern_text, price_pct, vol_diff_pct)
             circum_text = f"\n\n🧠 {pattern_text}\n🎯 Call: {call_text}"
         else:
+            vol_diff_pct = 0
             vol_trend = "[N/A]"
             circum_text = ""
     else:
+        vol_diff_pct = 0
         vol_trend = ""
         circum_text = ""
 
@@ -126,7 +127,7 @@ try:
         f"DEGEN DAILY — ft. ${token_name.lower()} {twitter_handle}\n\n"
         f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%] {emoji}\n\n"
         f"🏷️ Price: ${format_price_dynamic(price)} | Market Cap: ${mcap/1e6:.1f}M\n"
-        f"🔊 Volume [24h]: ${vol_today/1e6:.1f}M {vol_trend}"
+        f"🔊 Volume [24h]: ${end_vol/1e6:.1f}M {vol_trend}"
         f"{circum_text}"
     )
 
