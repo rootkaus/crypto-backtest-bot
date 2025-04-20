@@ -1,3 +1,4 @@
+updated_script = """
 import requests
 import datetime
 import os
@@ -70,8 +71,8 @@ def get_circumstantial_text(price_pct, vol_diff_pct):
     else:
         return ""
 
-def get_call_text(pattern_text, price_pct):
-    if abs(price_pct) < 2.99:
+def get_call_text(pattern_text, price_pct, vol_diff_pct):
+    if abs(price_pct) < 2.99 or abs(price_pct - vol_diff_pct) < 3:
         return "NOTHING"
     elif "Controlled Uptrend" in pattern_text:
         return "BUY"
@@ -101,8 +102,8 @@ try:
             vol_diff_pct = (end_vol - start_vol) / start_vol * 100
             vol_trend = f"[{vol_diff_pct:+.1f}%]"
             pattern_text = get_circumstantial_text(price_pct, vol_diff_pct)
-            call_text = get_call_text(pattern_text, price_pct)
-            circum_text = f"\n\n🧠 {pattern_text}\n🎯 Call: {call_text}"
+            call_text = get_call_text(pattern_text, price_pct, vol_diff_pct)
+            circum_text = f"\\n\\n🧠 {pattern_text}\\n🎯 Call: {call_text}"
         else:
             vol_trend = "[N/A]"
             circum_text = ""
@@ -122,9 +123,9 @@ try:
         emoji = ""
 
     tweet = (
-        f"DEGEN DAILY — ft. ${token_name.lower()} {twitter_handle}\n\n"
-        f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%] {emoji}\n\n"
-        f"🏷️ Price: ${format_price_dynamic(price)} | Market Cap: ${mcap/1e6:.1f}M\n"
+        f"DEGEN DAILY — ft. ${token_name.lower()} {twitter_handle}\\n\\n"
+        f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%] {emoji}\\n\\n"
+        f"🏷️ Price: ${format_price_dynamic(price)} | Market Cap: ${mcap/1e6:.1f}M\\n"
         f"🔊 Volume [24h]: ${vol_today/1e6:.1f}M {vol_trend}"
         f"{circum_text}"
     )
