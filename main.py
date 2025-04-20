@@ -2,71 +2,80 @@ import requests
 import datetime
 import os
 
+# Updated tokens with CoinGecko IDs and Twitter handles
 tokens = {
-    "WIF": "dogwifcoin",
-    "BONK": "bonk",
-    "POPCAT": "popcat",
-    "TRUMP": "official-trump",
-    "HARAMBE": "harambe-2",
-    "FARTCOIN": "fartcoin",
-    "PAIN": "pain",
-    "MEW": "cat-in-a-dogs-world",
-    "AI16Z": "ai16z",
-    "PNUT": "peanut-the-squirrel",
-    "MELANIA": "melania-meme",
-    "FWOG": "fwog",
-    "DADDY": "daddy-tate",
-    "MOODENG": "moo-deng",
-    "WEN": "wen-4",
-    "ZEREBRO": "zerebro",
-    "JAILSTOOL": "stool-prisondente",
-    "GHIBLI": "ghiblification",
-    "SLERF": "slerf",
-    "CABAL": "cabal",
-    "DEFIANT": "defiant-2",
-    "PENGU": "pudgy-penguins",
-    "GIGACHAD": "gigachad-2",
-    "PONKE": "ponke"
+    "WIF": ("dogwifcoin", "@dogwifcoin"),
+    "BONK": ("bonk", "@bonk_inu"),
+    "POPCAT": ("popcat", "@POPCATSOLANA"),
+    "TRUMP": ("official-trump", "@GetTrumpMemes"),
+    "TITCOIN": ("titcoin-2", "@TheTitCoin"),
+    "FARTCOIN": ("fartcoin", "@FartCoinOfSOL"),
+    "PAIN": ("pain", "@pain"),
+    "MEW": ("cat-in-a-dogs-world", "@mew"),
+    "AI16Z": ("ai16z", "@elizaos"),
+    "PNUT": ("peanut-the-squirrel", "@pnutsolana"),
+    "RFC": ("retard-finder-coin", "@RFindercoin"),
+    "FWOG": ("fwog", "@itsafwog"),
+    "JAILSTOOL": ("stool-prisondente", "@stoolpresidente"),
+    "MOODENG": ("moo-deng", "@MooDengSOL"),
+    "WEN": ("wen-4", "@wenwencoin"),
+    "ZEREBRO": ("zerebro", "@0xzerebro"),
+    "GHIBLI": ("ghiblification", "@ghibli"),
+    "SLERF": ("slerf", "@Slerfsol"),
+    "DARK": ("dark-eclipse", "@darkresearchai"),
+    "DEFIANT": ("defiant-2", "@DefiantOnSol"),
+    "PENGU": ("pudgy-penguins", "@pudgypenguins"),
+    "GIGACHAD": ("gigachad-2", "@GIGACHAD_meme"),
+    "PONKE": ("ponke", "@ponkesol"),
 }
 
 INVEST_AMOUNT = 100
 token_keys = list(tokens.keys())
-
 now = datetime.datetime.utcnow()
 current_hour = now.hour
 token_name = token_keys[current_hour % len(token_keys)]
-token_id = tokens[token_name]
+token_id, twitter_handle = tokens[token_name]
 
 print(f"🕐 Bot started at: {now.strftime('%Y-%m-%d %H:%M:%S')} | Hour: {current_hour}")
 print(f"🪙 Selected token: ${token_name} ({token_id})")
 
 try:
-    print("🔍 Fetching 24h price change from CoinGecko...")
     url = f"https://api.coingecko.com/api/v3/coins/{token_id}"
     res = requests.get(url)
     data = res.json()
+    market_data = data["market_data"]
 
-    if "market_data" not in data or "price_change_percentage_24h" not in data["market_data"]:
-        raise ValueError("❌ 'market_data' or 'price_change_percentage_24h' not found in API response")
+    # Metrics
+    price = market_data["current_price"]["usd"]
+    price_pct = market_data["price_change_percentage_24h"]
+    ath_change = market_data["ath_change_percentage"]["usd"]
+    atl_change = market_data["atl_change_percentage"]["usd"]
+    volume = market_data["total_volume"]["usd"]
+    volume_pct = market_data["volume_change_24h"]
+    market_cap = market_data["market_cap"]["usd"]
 
-    change_pct = data["market_data"]["price_change_percentage_24h"]
-    value_now = INVEST_AMOUNT * (1 + change_pct / 100)
+    value_now = INVEST_AMOUNT * (1 + price_pct / 100)
 
-    # Emoji logic
-    if change_pct >= 10:
+    # Emoji based on price %
+    if price_pct >= 10:
         emoji = "🔥"
-    elif change_pct >= 3:
+    elif price_pct >= 3:
         emoji = "📈"
-    elif change_pct <= -10:
+    elif price_pct <= -10:
         emoji = "💀"
-    elif change_pct <= -3:
+    elif price_pct <= -3:
         emoji = "📉"
     else:
         emoji = ""
 
+    # Format tweet
     tweet = (
-        f"1D Price Return — ${token_name}\n"
-        f"${INVEST_AMOUNT} → ${value_now:,.2f} ({change_pct:+.2f}%) {emoji}"
+        f"📊 DEGEN DAILY — ft. ${token_name.lower()} {twitter_handle}\n\n"
+        f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%]\n\n"
+        f"💵 Price: ${price:.4f} | Market Cap: ${market_cap:,.0f}\n"
+        f"⛏️ ATL ↑ {abs(atl_change):,.0f}% | ATH ↓ {abs(ath_change):.0f}%\n"
+        f"🔊 Volume [24h]: ${volume/1_000_000:.1f}M [{volume_pct:+.1f}%]\n\n"
+        f"New breakdown same time tomorrow! {emoji}"
     )
 
     print("📤 Tweet content:")
