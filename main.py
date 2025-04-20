@@ -70,6 +70,14 @@ def get_circumstantial_text(price_pct, vol_diff_pct):
     else:
         return ""
 
+def get_call_text(pattern_text):
+    if "Controlled Uptrend" in pattern_text:
+        return "BUY"
+    elif "Dry Bleed" in pattern_text:
+        return "SELL"
+    else:
+        return "NOTHING"
+
 try:
     r = requests.get(f"https://api.coingecko.com/api/v3/coins/{token_id}")
     m = r.json()["market_data"]
@@ -90,7 +98,9 @@ try:
         if start_vol > 0:
             vol_diff_pct = (end_vol - start_vol) / start_vol * 100
             vol_trend = f"[{vol_diff_pct:+.1f}%]"
-            circum_text = f"\n\n🧠 {get_circumstantial_text(price_pct, vol_diff_pct)}"
+            pattern_text = get_circumstantial_text(price_pct, vol_diff_pct)
+            call_text = get_call_text(pattern_text)
+            circum_text = f"\n\n🧠 {pattern_text}\n🎯 Call: {call_text}"
         else:
             vol_trend = "[N/A]"
             circum_text = ""
@@ -114,8 +124,7 @@ try:
         f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%] {emoji}\n\n"
         f"🏷️ Price: ${format_price_dynamic(price)} | Market Cap: ${mcap/1e6:.1f}M\n"
         f"🔊 Volume [24h]: ${vol_today/1e6:.1f}M {vol_trend}"
-        f"{circum_text}\n\n"
-        f"New alpha same time tomorrow!"
+        f"{circum_text}"
     )
 
     print("📤 Tweet content:")
