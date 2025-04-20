@@ -39,6 +39,18 @@ token_id, twitter_handle = tokens[token_name]
 print(f"🕐 Bot started at: {now.strftime('%Y-%m-%d %H:%M:%S')} | Hour: {current_hour}")
 print(f"🪙 Selected token: ${token_name} ({token_id})")
 
+# Dynamic price formatter
+def format_price_dynamic(p):
+    if p >= 1:
+        return f"{p:.3f}"
+    else:
+        s = f"{p:.12f}"
+        parts = s.split(".")
+        decimals = parts[1]
+        non_zero_index = next((i for i, c in enumerate(decimals) if c != "0"), len(decimals))
+        digits_to_show = decimals[non_zero_index:non_zero_index + 3]
+        return f"0.{decimals[:non_zero_index]}{digits_to_show}"
+
 try:
     url = f"https://api.coingecko.com/api/v3/coins/{token_id}"
     res = requests.get(url)
@@ -67,11 +79,11 @@ try:
     else:
         emoji = ""
 
-    # Format tweet (removed volume_pct)
+    # Format tweet
     tweet = (
-        f"📊 DEGEN DAILY — ft. ${token_name.lower()} {twitter_handle}\n\n"
+        f"DEGEN DAILY — ft. ${token_name.lower()} {twitter_handle}\n\n"
         f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%]\n\n"
-        f"💵 Price: ${price:.4f} | Market Cap: ${market_cap:,.0f}\n"
+        f"🏷️ Price: ${format_price_dynamic(price)} | Market Cap: ${market_cap:,.0f}\n"
         f"⛏️ ATL ↑ {abs(atl_change):,.0f}% | ATH ↓ {abs(ath_change):.0f}%\n"
         f"🔊 Volume [24h]: ${volume/1_000_000:.1f}M\n\n"
         f"New breakdown same time tomorrow! {emoji}"
