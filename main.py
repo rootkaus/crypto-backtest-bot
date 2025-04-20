@@ -75,6 +75,8 @@ def get_call_text(pattern_text, price_pct, vol_diff_pct):
         return "NOTHING"
     elif "Controlled Uptrend" in pattern_text:
         return "BUY"
+    elif "Accumulation Phase" in pattern_text and vol_diff_pct > price_pct * 1.4:
+        return "BUY"
     elif "Dry Bleed" in pattern_text:
         return "SELL"
     else:
