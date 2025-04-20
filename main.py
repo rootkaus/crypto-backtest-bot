@@ -49,24 +49,24 @@ def format_price_dynamic(p):
 def get_circumstantial_text(price_pct, vol_diff_pct):
     if price_pct > 0 and vol_diff_pct > 0:
         if price_pct > vol_diff_pct:
-            return "🧠 Price 🔺 > Volume 🔺\n🟰 Controlled Uptrend"
+            return "Price 🔺 > Volume 🔺 = Controlled Uptrend"
         else:
-            return "🧠 Volume 🔺 > Price 🔺\n🟰 Accumulation Phase"
+            return "Volume 🔺 > Price 🔺 = Accumulation Phase"
     elif price_pct > 0 and vol_diff_pct < 0:
         if price_pct > abs(vol_diff_pct):
-            return "🧠 Price 🔺 > Volume 🔻\n🟰 Low-Conviction Pump"
+            return "Price 🔺 > Volume 🔻 = Low-Conviction Pump"
         else:
-            return "🧠 Volume 🔻 > Price 🔺\n🟰 Fragile Push"
+            return "Volume 🔻 > Price 🔺 = Fragile Push"
     elif price_pct < 0 and vol_diff_pct > 0:
         if abs(price_pct) > vol_diff_pct:
-            return "🧠 Price 🔻 > Volume 🔺\n🟰 Supply Flush"
+            return "Price 🔻 > Volume 🔺 = Supply Flush"
         else:
-            return "🧠 Volume 🔺 > Price 🔻\n🟰 Reactive Interest"
+            return "Volume 🔺 > Price 🔻 = Reactive Interest"
     elif price_pct < 0 and vol_diff_pct < 0:
         if abs(price_pct) > abs(vol_diff_pct):
-            return "🧠 Price 🔻 > Volume 🔻\n🟰 Soft Decline"
+            return "Price 🔻 > Volume 🔻 = Soft Decline"
         else:
-            return "🧠 Volume 🔻 > Price 🔻\n🟰 Dry Bleed"
+            return "Volume 🔻 > Price 🔻 = Dry Bleed"
     else:
         return ""
 
@@ -90,7 +90,7 @@ try:
         if start_vol > 0:
             vol_diff_pct = (end_vol - start_vol) / start_vol * 100
             vol_trend = f"[{vol_diff_pct:+.1f}%]"
-            circum_text = f"\n\n{get_circumstantial_text(price_pct, vol_diff_pct)}"
+            circum_text = f"\n\n🧠 {get_circumstantial_text(price_pct, vol_diff_pct)}"
         else:
             vol_trend = "[N/A]"
             circum_text = ""
