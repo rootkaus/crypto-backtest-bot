@@ -2,6 +2,7 @@ import requests
 import datetime
 import os
 
+# Updated tokens with CoinGecko IDs and Twitter handles
 tokens = {
     "WIF": ("dogwifcoin", "@dogwifcoin"),
     "BONK": ("bonk", "@bonk_inu"),
@@ -38,6 +39,7 @@ token_id, twitter_handle = tokens[token_name]
 print(f"🕐 Bot started at: {now.strftime('%Y-%m-%d %H:%M:%S')} | Hour: {current_hour}")
 print(f"🪙 Selected token: ${token_name} ({token_id})")
 
+# Dynamic price formatter
 def format_price_dynamic(p):
     if p >= 1:
         return f"{p:.3f}"
@@ -55,38 +57,18 @@ try:
     data = res.json()
     market_data = data["market_data"]
 
-    # 1. Standard Metrics
+    # Metrics
     price = market_data["current_price"]["usd"]
     price_pct = market_data["price_change_percentage_24h"]
     ath_change = market_data["ath_change_percentage"]["usd"]
     atl_change = market_data["atl_change_percentage"]["usd"]
     volume_24h = market_data["total_volume"]["usd"]
+    volume_7d = market_data["total_volume"]["usd_7d"] if "usd_7d" in market_data.get("total_volume", {}) else None
     market_cap = market_data["market_cap"]["usd"]
+
     value_now = INVEST_AMOUNT * (1 + price_pct / 100)
 
-    # 2. Fetch 7-day volume data
-    chart_url = f"https://api.coingecko.com/api/v3/coins/{token_id}/market_chart?vs_currency=usd&days=7"
-    chart_res = requests.get(chart_url)
-    volume_data = chart_res.json().get("total_volumes", [])
-
-    # Extract daily volume
-    if len(volume_data) >= 7:
-        daily_volumes = []
-        last_ts = 0
-        for ts, vol in volume_data:
-            if ts - last_ts >= 86400000:  # ~1 day
-                daily_volumes.append(vol)
-                last_ts = ts
-        if len(daily_volumes) >= 2:
-            avg_7d_volume = sum(daily_volumes[:-1]) / (len(daily_volumes) - 1)
-            volume_diff_pct = ((volume_24h - avg_7d_volume) / avg_7d_volume) * 100
-            volume_trend = f"[{abs(volume_diff_pct):.1f}% {'>' if volume_diff_pct > 0 else '<'} 7d avg.]"
-        else:
-            volume_trend = ""
-    else:
-        volume_trend = ""
-
-    # 3. Emoji
+    # Emoji based on price %
     if price_pct >= 10:
         emoji = "🔥"
     elif price_pct >= 3:
@@ -98,7 +80,14 @@ try:
     else:
         emoji = ""
 
-    # 4. Format Tweet
+    # Volume comparison
+    if volume_7d:
+        volume_diff_pct = ((volume_24h - volume_7d / 7) / (volume_7d / 7)) * 100
+        volume_trend = f"[{abs(volume_diff_pct):.1f}% {'>' if volume_diff_pct > 0 else '<'} 7d avg.]"
+    else:
+        volume_trend = ""
+
+    # Format tweet
     tweet = (
         f"DEGEN DAILY — ft. ${token_name.lower()} {twitter_handle}\n\n"
         f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%] {emoji}\n\n"
