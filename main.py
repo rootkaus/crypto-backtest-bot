@@ -55,6 +55,7 @@ try:
     data = res.json()
     market_data = data["market_data"]
 
+    # 1. Standard Metrics
     price = market_data["current_price"]["usd"]
     price_pct = market_data["price_change_percentage_24h"]
     ath_change = market_data["ath_change_percentage"]["usd"]
@@ -63,28 +64,19 @@ try:
     market_cap = market_data["market_cap"]["usd"]
     value_now = INVEST_AMOUNT * (1 + price_pct / 100)
 
-    # 2. Fetch volume data to calculate past 24h volume
+    # 2. Volume difference [24h vs previous 24h]
     chart_url_2d = f"https://api.coingecko.com/api/v3/coins/{token_id}/market_chart?vs_currency=usd&days=2"
     chart_res = requests.get(chart_url_2d)
     volume_data = chart_res.json().get("total_volumes", [])
 
-    if len(volume_data) >= 2:
+    if len(volume_data) >= 49:
         volume_now = volume_data[-1][1]
-        one_day_ago_timestamp = volume_data[-1][0] - 86400000
+        volume_day_ago = volume_data[-49][1]  # ~24h ago
+        prev_24h_volume = volume_now - volume_day_ago
 
-        # Find the closest timestamp to 24h ago
-        past_day_index = next((i for i, (ts, _) in enumerate(volume_data) if ts >= one_day_ago_timestamp), None)
-
-        if past_day_index is not None:
-            volume_prev_day = volume_data[past_day_index][1]
-            past_24h_volume = volume_prev_day
-            prev_day_volume = volume_now - past_24h_volume
-
-            if prev_day_volume > 0:
-                volume_change_pct = ((volume_24h - prev_day_volume) / prev_day_volume) * 100
-                volume_trend = f"[{volume_change_pct:+.1f}%]"
-            else:
-                volume_trend = ""
+        if prev_24h_volume > 0:
+            volume_change_pct = ((volume_24h - prev_24h_volume) / prev_24h_volume) * 100
+            volume_trend = f"[{volume_change_pct:+.1f}%]"
         else:
             volume_trend = ""
     else:
