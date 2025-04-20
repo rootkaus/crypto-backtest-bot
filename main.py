@@ -51,7 +51,7 @@ def format_price_dynamic(p):
         return f"0.{decimals[:non_zero_index]}{digits_to_show}"
 
 try:
-    # Fetch coin data
+    # 1. Current market data
     url = f"https://api.coingecko.com/api/v3/coins/{token_id}"
     res = requests.get(url)
     data = res.json()
@@ -62,36 +62,35 @@ try:
     ath_change = market_data["ath_change_percentage"]["usd"]
     atl_change = market_data["atl_change_percentage"]["usd"]
     market_cap = market_data["market_cap"]["usd"]
+
     value_now = INVEST_AMOUNT * (1 + price_pct / 100)
 
-    # Fetch 2-day volume history (hourly)
-    volume_url = f"https://api.coingecko.com/api/v3/coins/{token_id}/market_chart?vs_currency=usd&days=2"
-    volume_res = requests.get(volume_url)
-    volume_data = volume_res.json().get("total_volumes", [])
+    # 2. Accurate volume using deltas (hourly resolution)
+    chart_url = f"https://api.coingecko.com/api/v3/coins/{token_id}/market_chart?vs_currency=usd&days=2"
+    chart_res = requests.get(chart_url)
+    volume_data = chart_res.json().get("total_volumes", [])
 
-    # Get latest timestamp
-    now_ts = volume_data[-1][0]
-    one_day_ms = 24 * 60 * 60 * 1000
+    volume_24h = None
+    volume_prev_24h = None
+    volume_pct_diff_str = ""
 
-    # Split into two days
-    day1_volume = 0
-    day2_volume = 0
-    for ts, vol in volume_data:
-        if ts >= now_ts - one_day_ms:
-            day2_volume += vol
-        else:
-            day1_volume += vol
+    if len(volume_data) >= 49:
+        v_day_2_start = volume_data[0][1]
+        v_day_1_start = volume_data[24][1]
+        v_now = volume_data[48][1]
 
-    volume_24h = day2_volume
-    try:
-        vol_pct_change = ((day2_volume - day1_volume) / day1_volume) * 100
-        volume_trend = f"[{vol_pct_change:+.1f}%]"
-    except ZeroDivisionError:
-        volume_trend = ""
+        volume_24h = v_now - v_day_1_start
+        volume_prev_24h = v_day_1_start - v_day_2_start
 
-    print(f"📊 Volume Debug → Day 1: ${day1_volume:,.2f}, Day 2: ${day2_volume:,.2f}")
+        print(f"📊 Volume Debug → Day 1: ${volume_prev_24h:,.2f}, Day 2: ${volume_24h:,.2f}")
 
-    # Emoji based on price %
+        if volume_prev_24h > 0:
+            volume_diff_pct = ((volume_24h - volume_prev_24h) / volume_prev_24h) * 100
+            volume_pct_diff_str = f" [{volume_diff_pct:+.1f}%]"
+    else:
+        print("⚠️ Not enough volume data to compute 24h diff.")
+
+    # 3. Emoji logic
     if price_pct >= 10:
         emoji = "🔥"
     elif price_pct >= 3:
@@ -103,16 +102,22 @@ try:
     else:
         emoji = ""
 
-    # Final tweet
+    # 4. Format tweet
     tweet = (
         f"DEGEN DAILY — ft. ${token_name.lower()} {twitter_handle}\n\n"
         f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%] {emoji}\n\n"
         f"🏷️ Price: ${format_price_dynamic(price)} | Market Cap: ${market_cap/1_000_000:.1f}M\n"
         f"↕️ ATL ↑ {abs(atl_change):,.0f}% | ATH ↓ {abs(ath_change):.0f}%\n"
-        f"🔊 Volume [24h]: ${volume_24h/1_000_000:.1f}M {volume_trend}\n\n"
-        f"New breakdown same time tomorrow!"
     )
 
+    if volume_24h is not None:
+        tweet += f"🎙️ Volume [24h]: ${volume_24h/1_000_000:.1f}M{volume_pct_diff_str}\n\n"
+    else:
+        tweet += "\n"
+
+    tweet += "New breakdown same time tomorrow!"
+
+    # 5. Send tweet via IFTTT
     print("📤 Tweet content:")
     print(tweet)
 
