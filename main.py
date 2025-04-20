@@ -84,25 +84,26 @@ try:
     r = requests.get(f"https://api.coingecko.com/api/v3/coins/{token_id}")
     m = r.json()["market_data"]
 
-    price       = m["current_price"]["usd"]
-    price_pct   = m["price_change_percentage_24h"]
-    vol_today   = m["total_volume"]["usd"]
-    mcap        = m["market_cap"]["usd"]
-    value_now   = INVEST_AMOUNT * (1 + price_pct / 100)
+    price = m["current_price"]["usd"]
+    price_pct = m["price_change_percentage_24h"]
+    vol_today = m["total_volume"]["usd"]
+    mcap = m["market_cap"]["usd"]
+    value_now = INVEST_AMOUNT * (1 + price_pct / 100)
 
     chart = requests.get(
         f"https://api.coingecko.com/api/v3/coins/{token_id}/market_chart",
         params={"vs_currency": "usd", "days": 1}
     ).json().get("total_volumes", [])
+
     if chart:
         start_vol = chart[0][1]
-        end_vol   = chart[-1][1]
+        end_vol = chart[-1][1]
         if start_vol > 0:
             vol_diff_pct = (end_vol - start_vol) / start_vol * 100
             vol_trend = f"[{vol_diff_pct:+.1f}%]"
             pattern_text = get_circumstantial_text(price_pct, vol_diff_pct)
             call_text = get_call_text(pattern_text, price_pct, vol_diff_pct)
-            circum_text = f"\\n\\n🧠 {pattern_text}\\n🎯 Call: {call_text}"
+            circum_text = f"\n\n🧠 {pattern_text}\n🎯 Call: {call_text}"
         else:
             vol_trend = "[N/A]"
             circum_text = ""
@@ -122,9 +123,9 @@ try:
         emoji = ""
 
     tweet = (
-        f"DEGEN DAILY — ft. ${token_name.lower()} {twitter_handle}\\n\\n"
-        f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%] {emoji}\\n\\n"
-        f"🏷️ Price: ${format_price_dynamic(price)} | Market Cap: ${mcap/1e6:.1f}M\\n"
+        f"DEGEN DAILY — ft. ${token_name.lower()} {twitter_handle}\n\n"
+        f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%] {emoji}\n\n"
+        f"🏷️ Price: ${format_price_dynamic(price)} | Market Cap: ${mcap/1e6:.1f}M\n"
         f"🔊 Volume [24h]: ${vol_today/1e6:.1f}M {vol_trend}"
         f"{circum_text}"
     )
