@@ -62,7 +62,8 @@ try:
     price_pct = market_data["price_change_percentage_24h"]
     ath_change = market_data["ath_change_percentage"]["usd"]
     atl_change = market_data["atl_change_percentage"]["usd"]
-    volume = market_data["total_volume"]["usd"]
+    volume_24h = market_data["total_volume"]["usd"]
+    volume_7d = market_data["total_volume"]["usd_7d"] if "usd_7d" in market_data.get("total_volume", {}) else None
     market_cap = market_data["market_cap"]["usd"]
 
     value_now = INVEST_AMOUNT * (1 + price_pct / 100)
@@ -79,13 +80,20 @@ try:
     else:
         emoji = ""
 
+    # Volume comparison
+    if volume_7d:
+        volume_diff_pct = ((volume_24h - volume_7d / 7) / (volume_7d / 7)) * 100
+        volume_trend = f"[{abs(volume_diff_pct):.1f}% {'>' if volume_diff_pct > 0 else '<'} 7d avg.]"
+    else:
+        volume_trend = ""
+
     # Format tweet
     tweet = (
         f"DEGEN DAILY — ft. ${token_name.lower()} {twitter_handle}\n\n"
         f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%] {emoji}\n\n"
         f"🏷️ Price: ${format_price_dynamic(price)} | Market Cap: ${market_cap/1_000_000:.1f}M\n"
         f"↕️ ATL ↑ {abs(atl_change):,.0f}% | ATH ↓ {abs(ath_change):.0f}%\n"
-        f"🔊 Volume [24h]: ${volume/1_000_000:.1f}M\n\n"
+        f"🔊 Volume [24h]: ${volume_24h/1_000_000:.1f}M {volume_trend}\n\n"
         f"New breakdown same time tomorrow!"
     )
 
