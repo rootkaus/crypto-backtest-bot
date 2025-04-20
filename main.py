@@ -70,8 +70,10 @@ def get_circumstantial_text(price_pct, vol_diff_pct):
     else:
         return ""
 
-def get_call_text(pattern_text):
-    if "Controlled Uptrend" in pattern_text:
+def get_call_text(pattern_text, price_pct):
+    if abs(price_pct) < 2.99:
+        return "NOTHING"
+    elif "Controlled Uptrend" in pattern_text:
         return "BUY"
     elif "Dry Bleed" in pattern_text:
         return "SELL"
@@ -99,7 +101,7 @@ try:
             vol_diff_pct = (end_vol - start_vol) / start_vol * 100
             vol_trend = f"[{vol_diff_pct:+.1f}%]"
             pattern_text = get_circumstantial_text(price_pct, vol_diff_pct)
-            call_text = get_call_text(pattern_text)
+            call_text = get_call_text(pattern_text, price_pct)
             circum_text = f"\n\n🧠 {pattern_text}\n🎯 Call: {call_text}"
         else:
             vol_trend = "[N/A]"
