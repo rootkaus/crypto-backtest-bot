@@ -26,6 +26,7 @@ tokens = {
     "PENGU": ("pudgy-penguins", "@pudgypenguins"),
     "GIGACHAD": ("gigachad-2", "@GIGACHAD_meme"),
     "PONKE": ("ponke", "@ponkesol"),
+    "FITCOIN": ("fitcoin-2", "@itsfitcoin"),
 }
 
 INVEST_AMOUNT = 100
