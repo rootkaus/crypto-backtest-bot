@@ -73,14 +73,20 @@ def get_circumstantial_text(price_pct, vol_diff_pct):
 def get_call_text(pattern_text, price_pct, vol_diff_pct):
     if abs(price_pct) < 2 or abs(price_pct - vol_diff_pct) < 3:
         return "NOTHING"
-    elif "Controlled Uptrend" in pattern_text:
+    
+    if "Controlled Uptrend" in pattern_text:
         return "BUY"
-    elif "Accumulation Phase" in pattern_text and vol_diff_pct > price_pct * 1.4:
-        return "BUY"
+    
+    elif "Accumulation Phase" in pattern_text:
+        threshold = min(price_pct * 2, 10)
+        if vol_diff_pct > threshold:
+            return "BUY"
+    
     elif "Dry Bleed" in pattern_text:
-        return "SELL"
-    else:
-        return "NOTHING"
+        if abs(vol_diff_pct) > abs(price_pct) * 1.4:
+            return "SELL"
+    
+    return "NOTHING"
 
 try:
     r = requests.get(f"https://api.coingecko.com/api/v3/coins/{token_id}")
