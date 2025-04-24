@@ -27,51 +27,52 @@ def extract_call(text):
         return "NOTHING"
     return None
 
-# --- Load ---
+# --- Load and format ---
 df = pd.read_csv(CSV_URL, header=None)
 df.columns = ['Timestamp', 'Handle', 'Tweet content', 'Link']
 df['Date'] = pd.to_datetime(df['Timestamp'], errors='coerce')
 df['Token'] = df['Tweet content'].apply(extract_token)
 df['Price'] = df['Tweet content'].apply(extract_price)
 df['Call'] = df['Tweet content'].apply(extract_call)
-
 df = df.dropna(subset=['Date', 'Token', 'Price'])
 df = df.sort_values(by='Date')
 
-# Only evaluate actual positions — LONG or SHORT
-positions = df[df['Call'].isin(['LONG', 'SHORT'])]
-
-if positions.empty:
-    print("❌ No actionable positions found.")
+# --- Exit if empty ---
+if df.empty:
+    print("❌ No entries to analyze.")
     exit()
 
-# Get the latest actionable position
-latest = positions.iloc[-1]
+# --- Get latest ---
+latest = df.iloc[-1]
 token = latest['Token']
 call = latest['Call']
-price_entry = latest['Price']
-date_entry = latest['Date']
+price_now = latest['Price']
+date_now = latest['Date']
 
-# Find the next available row for same token — ANY call (LONG, SHORT, NOTHING)
-exit_df = df[(df['Token'] == token) & (df['Date'] > date_entry)]
-if exit_df.empty:
-    print(f"⚠️ No exit price found for ${token} — waiting for next log.")
-    exit()
-
-exit_price = exit_df.iloc[0]['Price']
-pct_change = ((exit_price - price_entry) / price_entry) * 100
-pct_str = f"{pct_change:+.2f}%"
-
-# Determine if the call was correct
-if call == "LONG":
-    result = "✅" if pct_change > 0 else "❌"
+# --- Find prior actionable call ---
+prev_df = df[(df['Token'] == token) & (df['Date'] < date_now)]
+prev_actionable = prev_df[prev_df['Call'].isin(['LONG', 'SHORT'])]
+if prev_actionable.empty:
+    print(f"⚠️ No prior LONG/SHORT call for ${token} — tracking anyway.")
+    result = "❓"
+    pct_str = "N/A"
 else:
-    result = "✅" if pct_change < 0 else "❌"
+    prev = prev_actionable.iloc[-1]
+    price_prev = prev['Price']
+    prev_call = prev['Call']
+    pct_change = ((price_now - price_prev) / price_prev) * 100
+    pct_str = f"{pct_change:+.2f}%"
 
-# Send to IFTTT
+    # --- Evaluate result ---
+    if prev_call == "LONG":
+        result = "✅" if pct_change > 0 else "❌"
+    else:
+        result = "✅" if pct_change < 0 else "❌"
+
+# --- Send to IFTTT ---
 payload = {
     "value1": token,
-    "value2": call,
+    "value2": call or "UNKNOWN",
     "value3": f"{result} ({pct_str})"
 }
 
