@@ -30,13 +30,20 @@ tokens = {
 }
 
 INVEST_AMOUNT = 100
-now = datetime.datetime.utcnow()
+
+# ✅ NEW: Optional override from environment variable
+force_token = os.getenv("FORCE_TOKEN")
 token_keys = list(tokens.keys())
-token_name = token_keys[now.hour % len(token_keys)]
+
+if force_token and force_token in tokens:
+    token_name = force_token
+else:
+    now = datetime.datetime.utcnow()
+    token_name = token_keys[now.hour % len(token_keys)]
+
 token_id, twitter_handle = tokens[token_name]
 
-print(f"🕐 Bot started at: {now.strftime('%Y-%m-%d %H:%M:%S UTC')} | Hour: {now.hour}")
-print(f"🪙 Selected token: ${token_name} ({token_id})")
+print(f"🕐 Bot running | Selected token: ${token_name} ({token_id})")
 
 def format_price_dynamic(p):
     if p >= 1:
@@ -78,24 +85,18 @@ def get_call_text(pattern_text, price_pct, vol_diff_pct):
         "Dry Bleed" in pattern_text
     )
 
-    # BUY/SELL conditions
     if "Controlled Uptrend" in pattern_text and abs(price_pct) >= 2:
         return "BUY"
-
     elif "Accumulation Phase" in pattern_text:
         threshold = min(price_pct * 2, 10)
         if vol_diff_pct > threshold and abs(price_pct) >= 2:
             return "BUY"
-
     elif "Dry Bleed" in pattern_text:
         if abs(vol_diff_pct) > abs(price_pct) * 1.4 and abs(price_pct) >= 2:
             return "SELL"
-
-    # Classify the reason for not calling
     if can_trigger:
         return "NOTHING (weak signal)"
-    else:
-        return "NOTHING (uncertain)"
+    return "NOTHING (uncertain)"
 
 try:
     r = requests.get(f"https://api.coingecko.com/api/v3/coins/{token_id}")
