@@ -1,0 +1,27 @@
+name: Run Accuracy Tracker
+
+on:
+  schedule:
+    - cron: "15 * * * *"  # Run every hour at 15 minutes past
+  workflow_dispatch:       # Optional: allow manual runs too
+
+jobs:
+  track-accuracy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install pandas requests
+
+      - name: Run accuracy tracker
+        env:
+          IFTTT_WEBHOOK_URL: ${{ secrets.IFTTT_WEBHOOK_URL }}  # Optional: if you want to secure the key
+        run: python track_accuracy.py
