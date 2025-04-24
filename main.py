@@ -31,7 +31,6 @@ tokens = {
 
 INVEST_AMOUNT = 100
 
-# ✅ Optional override from environment variable
 force_token = os.getenv("FORCE_TOKEN")
 token_keys = list(tokens.keys())
 
@@ -42,8 +41,6 @@ else:
     token_name = token_keys[now.hour % len(token_keys)]
 
 token_id, twitter_handle = tokens[token_name]
-
-print(f"🕐 Bot running | Selected token: ${token_name} ({token_id})")
 
 def format_price_dynamic(p):
     if p >= 1:
@@ -60,51 +57,43 @@ def format_mcap(m):
 def get_circumstantial_text(price_pct, vol_diff_pct):
     if price_pct > 0 and vol_diff_pct > 0:
         if price_pct > vol_diff_pct:
-            return "Controlled Uptrend"
+            return "Momentum Move"
         else:
-            return "Accumulation Phase"
+            return "Accumulation"
     elif price_pct > 0 and vol_diff_pct < 0:
         if price_pct > abs(vol_diff_pct):
-            return "Low-Conviction Pump"
+            return "Weak Rally"
         else:
-            return "Fragile Push"
+            return "Anemic Rally"
     elif price_pct < 0 and vol_diff_pct > 0:
         if abs(price_pct) > vol_diff_pct:
             return "Supply Flush"
         else:
-            return "Reactive Interest"
+            return "Distribution"
     elif price_pct < 0 and vol_diff_pct < 0:
         if abs(price_pct) > abs(vol_diff_pct):
-            return "Soft Decline"
+            return "Decay Trend"
         else:
             return "Dry Bleed"
-    else:
-        return ""
+    return "Unknown"
 
 def get_call_text(pattern_text, price_pct, vol_diff_pct):
-    if "Controlled Uptrend" in pattern_text and abs(price_pct) >= 2:
-        return "LONG — Controlled Uptrend (strong)"
-    elif "Accumulation Phase" in pattern_text:
+    if "Momentum Move" in pattern_text and abs(price_pct) >= 2:
+        return "LONG — Momentum Move"
+    elif "Accumulation" in pattern_text:
         threshold = min(price_pct * 2, 10)
         if vol_diff_pct > threshold and abs(price_pct) >= 2:
-            return "LONG — Accumulation Phase (strong)"
+            return "LONG — Accumulation"
         else:
-            return "NOTHING — Accumulation Phase (weak)"
+            return "NOTHING — Accumulation (weak)"
     elif "Dry Bleed" in pattern_text:
         if abs(vol_diff_pct) > abs(price_pct) * 1.4 and abs(price_pct) >= 2:
-            return "SHORT — Dry Bleed (strong)"
+            return "SHORT — Dry Bleed"
         else:
             return "NOTHING — Dry Bleed (weak)"
-    elif "Soft Decline" in pattern_text:
-        return "NOTHING — Soft Decline (uncertain)"
-    elif "Reactive Interest" in pattern_text:
-        return "NOTHING — Reactive Interest (uncertain)"
-    elif "Low-Conviction Pump" in pattern_text:
-        return "NOTHING — Low-Conviction Pump (uncertain)"
-    elif "Fragile Push" in pattern_text:
-        return "NOTHING — Fragile Push (uncertain)"
-    else:
-        return "NOTHING — Unknown (uncertain)"
+    elif pattern_text in ["Decay Trend", "Distribution", "Weak Rally", "Anemic Rally"]:
+        return f"NOTHING — {pattern_text} (uncertain)"
+    return "NOTHING — Unknown (uncertain)"
 
 try:
     r = requests.get(f"https://api.coingecko.com/api/v3/coins/{token_id}")
