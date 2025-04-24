@@ -31,7 +31,7 @@ tokens = {
 
 INVEST_AMOUNT = 100
 
-# ✅ NEW: Optional override from environment variable
+# ✅ Optional override from environment variable
 force_token = os.getenv("FORCE_TOKEN")
 token_keys = list(tokens.keys())
 
@@ -54,49 +54,57 @@ def format_price_dynamic(p):
     digits = dec[nz:nz+3]
     return f"0.{dec[:nz]}{digits}"
 
+def format_mcap(m):
+    return f"${m/1e9:.1f}B" if m >= 1e9 else f"${m/1e6:.1f}M"
+
 def get_circumstantial_text(price_pct, vol_diff_pct):
     if price_pct > 0 and vol_diff_pct > 0:
         if price_pct > vol_diff_pct:
-            return "Price 🔺 > Volume 🔺 = Controlled Uptrend"
+            return "Controlled Uptrend"
         else:
-            return "Volume 🔺 > Price 🔺 = Accumulation Phase"
+            return "Accumulation Phase"
     elif price_pct > 0 and vol_diff_pct < 0:
         if price_pct > abs(vol_diff_pct):
-            return "Price 🔺 > Volume 🔻 = Low-Conviction Pump"
+            return "Low-Conviction Pump"
         else:
-            return "Volume 🔻 > Price 🔺 = Fragile Push"
+            return "Fragile Push"
     elif price_pct < 0 and vol_diff_pct > 0:
         if abs(price_pct) > vol_diff_pct:
-            return "Price 🔻 > Volume 🔺 = Supply Flush"
+            return "Supply Flush"
         else:
-            return "Volume 🔺 > Price 🔻 = Reactive Interest"
+            return "Reactive Interest"
     elif price_pct < 0 and vol_diff_pct < 0:
         if abs(price_pct) > abs(vol_diff_pct):
-            return "Price 🔻 > Volume 🔻 = Soft Decline"
+            return "Soft Decline"
         else:
-            return "Volume 🔻 > Price 🔻 = Dry Bleed"
+            return "Dry Bleed"
     else:
         return ""
 
 def get_call_text(pattern_text, price_pct, vol_diff_pct):
-    can_trigger = (
-        "Controlled Uptrend" in pattern_text or
-        "Accumulation Phase" in pattern_text or
-        "Dry Bleed" in pattern_text
-    )
-
     if "Controlled Uptrend" in pattern_text and abs(price_pct) >= 2:
-        return "BUY"
+        return "LONG — Controlled Uptrend (strong)"
     elif "Accumulation Phase" in pattern_text:
         threshold = min(price_pct * 2, 10)
         if vol_diff_pct > threshold and abs(price_pct) >= 2:
-            return "BUY"
+            return "LONG — Accumulation Phase (strong)"
+        else:
+            return "NOTHING — Accumulation Phase (weak)"
     elif "Dry Bleed" in pattern_text:
         if abs(vol_diff_pct) > abs(price_pct) * 1.4 and abs(price_pct) >= 2:
-            return "SELL"
-    if can_trigger:
-        return "NOTHING (weak signal)"
-    return "NOTHING (uncertain)"
+            return "SHORT — Dry Bleed (strong)"
+        else:
+            return "NOTHING — Dry Bleed (weak)"
+    elif "Soft Decline" in pattern_text:
+        return "NOTHING — Soft Decline (uncertain)"
+    elif "Reactive Interest" in pattern_text:
+        return "NOTHING — Reactive Interest (uncertain)"
+    elif "Low-Conviction Pump" in pattern_text:
+        return "NOTHING — Low-Conviction Pump (uncertain)"
+    elif "Fragile Push" in pattern_text:
+        return "NOTHING — Fragile Push (uncertain)"
+    else:
+        return "NOTHING — Unknown (uncertain)"
 
 try:
     r = requests.get(f"https://api.coingecko.com/api/v3/coins/{token_id}")
@@ -120,15 +128,13 @@ try:
             vol_trend = f"[{vol_diff_pct:+.1f}%]"
             pattern_text = get_circumstantial_text(price_pct, vol_diff_pct)
             call_text = get_call_text(pattern_text, price_pct, vol_diff_pct)
-            circum_text = f"\n\n🧠 {pattern_text}\n🎯 Call: {call_text}"
+            circum_text = f"\n\n🎯 {call_text}"
         else:
-            vol_diff_pct = 0
             vol_trend = "[N/A]"
-            circum_text = ""
+            circum_text = "\n\n🎯 UNKNOWN"
     else:
-        vol_diff_pct = 0
         vol_trend = ""
-        circum_text = ""
+        circum_text = "\n\n🎯 UNKNOWN"
 
     if price_pct >= 10:
         emoji = "🔥"
@@ -144,7 +150,7 @@ try:
     tweet = (
         f"DEGEN DAILY — ft. ${token_name.lower()} {twitter_handle}\n\n"
         f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%] {emoji}\n\n"
-        f"🏷️ Price: ${format_price_dynamic(price)} | Market Cap: ${mcap/1e6:.1f}M\n"
+        f"🏷️ Price: ${format_price_dynamic(price)} | Market Cap: {format_mcap(mcap)}\n"
         f"🔊 Volume [24h]: ${end_vol/1e6:.1f}M {vol_trend}"
         f"{circum_text}"
     )
