@@ -23,5 +23,5 @@ jobs:
 
       - name: Run accuracy tracker
         env:
-          IFTTT_WEBHOOK_URL: ${{ secrets.IFTTT_ACCURACY_URL }}  # Optional: if you want to secure the key
+          IFTTT_ACCURACY_URL: ${{ secrets.IFTTT_ACCURACY_URL }}  # Optional: if you want to secure the key
         run: python track_accuracy.py
