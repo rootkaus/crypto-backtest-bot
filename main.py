@@ -42,6 +42,8 @@ else:
 
 token_id, twitter_handle = tokens[token_name]
 
+print(f"🕐 Bot running | Selected token: ${token_name} ({token_id})")
+
 def format_price_dynamic(p):
     if p >= 1:
         return f"{p:.3f}"
@@ -75,20 +77,21 @@ def get_circumstantial_text(price_pct, vol_diff_pct):
             return "Decay Trend"
         else:
             return "Dry Bleed"
-    return "Unknown"
+    else:
+        return "Unknown"
 
 def get_call_text(pattern_text, price_pct, vol_diff_pct):
     if "Momentum Move" in pattern_text and abs(price_pct) >= 2:
-        return "LONG — Momentum Move"
+        return "LONG — Momentum Move (strong)"
     elif "Accumulation" in pattern_text:
         threshold = min(price_pct * 2, 10)
         if vol_diff_pct > threshold and abs(price_pct) >= 2:
-            return "LONG — Accumulation"
+            return "LONG — Accumulation (strong)"
         else:
             return "NOTHING — Accumulation (weak)"
     elif "Dry Bleed" in pattern_text:
         if abs(vol_diff_pct) > abs(price_pct) * 1.4 and abs(price_pct) >= 2:
-            return "SHORT — Dry Bleed"
+            return "SHORT — Dry Bleed (strong)"
         else:
             return "NOTHING — Dry Bleed (weak)"
     elif pattern_text in ["Decay Trend", "Distribution", "Weak Rally", "Anemic Rally"]:
