@@ -6,7 +6,7 @@ from datetime import datetime
 
 # --- CONFIG ---
 CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS0mLZ_7hNYPquqsiLe9YUADHka8V1Lf5b4OelUc-8BP9H31aLgoC9p30UlXYLKov2Fcbr_qWHlHT21/pub?gid=0&single=true&output=csv"
-IFTTT_WEBHOOK_URL = os.getenv("IFTTT_ACCURACY_URL")  # Make sure this secret is set in GitHub
+IFTTT_ACCURACY_URL = os.getenv("IFTTT_ACCURACY_URL")  # Make sure this secret is set in GitHub
 
 # --- Helper functions ---
 def extract_token(text):
