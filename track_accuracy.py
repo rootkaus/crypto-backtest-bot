@@ -74,7 +74,7 @@ payload = {
 }
 
 try:
-    r = requests.post(IFTTT_WEBHOOK_URL, json=payload)
+    r = requests.post(IFTTT_ACCURACY_URL, json=payload)
     if r.ok:
         print(f"✅ Sent to IFTTT: {payload}")
     else:
