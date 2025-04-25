@@ -22,7 +22,7 @@ tokens = {
     "GHIBLI": ("ghiblification", "@ghibli"),
     "SLERF": ("slerf", "@Slerfsol"),
     "DARK": ("dark-eclipse", "@darkresearchai"),
-    "DEFIANT": ("defiant-2", "@DefiantOnSol"),
+    "UFD": ("unicorn-fart-dust", "@BasementRon"),
     "PENGU": ("pudgy-penguins", "@pudgypenguins"),
     "GIGACHAD": ("gigachad-2", "@GIGACHAD_meme"),
     "PONKE": ("ponke", "@ponkesol"),
