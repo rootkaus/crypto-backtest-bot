@@ -2,11 +2,14 @@ import pandas as pd
 import re
 import requests
 import os
+import sys
 from datetime import datetime
 
 # --- CONFIG ---
 CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS0mLZ_7hNYPquqsiLe9YUADHka8V1Lf5b4OelUc-8BP9H31aLgoC9p30UlXYLKov2Fcbr_qWHlHT21/pub?gid=0&single=true&output=csv"
 IFTTT_ACCURACY_URL = os.getenv("IFTTT_ACCURACY_URL")
+LAST_CHECKED_FILE = "last_checked.txt"
+FORCE = "--force" in sys.argv
 
 # --- Helpers ---
 def extract_token(text):
@@ -27,7 +30,7 @@ def extract_call(text):
         return "NOTHING"
     return None
 
-# --- Load and format ---
+# --- Load data ---
 df = pd.read_csv(CSV_URL, header=None)
 df.columns = ['Timestamp', 'Handle', 'Tweet content', 'Link']
 df['Date'] = pd.to_datetime(df['Timestamp'], errors='coerce')
@@ -42,16 +45,33 @@ if df.empty:
     print("❌ No entries to analyze.")
     exit()
 
-# --- Get latest ---
+# --- Get latest call ---
 latest = df.iloc[-1]
 token = latest['Token']
 call = latest['Call']
 price_now = latest['Price']
 date_now = latest['Date']
 
-# --- Find prior actionable call ---
+# --- Compare with last checked ---
+last_checked = None
+if os.path.exists(LAST_CHECKED_FILE):
+    with open(LAST_CHECKED_FILE, "r") as f:
+        last_checked = f.read().strip()
+
+print(f"🕓 Last checked: {last_checked}")
+print(f"🆕 Latest call: {date_now}")
+if not FORCE and last_checked and str(date_now) <= last_checked:
+    print("⏩ No new call since last check — skipping.")
+    exit()
+
+# --- Update last checked ---
+with open(LAST_CHECKED_FILE, "w") as f:
+    f.write(str(date_now))
+
+# --- Analyze result ---
 prev_df = df[(df['Token'] == token) & (df['Date'] < date_now)]
 prev_actionable = prev_df[prev_df['Call'].isin(['LONG', 'SHORT'])]
+
 if prev_actionable.empty:
     print(f"⚠️ No prior LONG/SHORT call for ${token} — tracking anyway.")
     result = "❓"
@@ -63,11 +83,10 @@ else:
     pct_change = ((price_now - price_prev) / price_prev) * 100
     pct_str = f"{pct_change:+.2f}%"
 
-    # --- Evaluate result ---
-    if prev_call == "LONG":
-        result = "✅" if pct_change > 0 else "❌"
-    else:
-        result = "✅" if pct_change < 0 else "❌"
+    result = "✅" if (
+        (prev_call == "LONG" and pct_change > 0)
+        or (prev_call == "SHORT" and pct_change < 0)
+    ) else "❌"
 
 # --- Send to IFTTT ---
 payload = {
