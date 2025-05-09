@@ -2,8 +2,33 @@ import requests
 import datetime
 import os
 
-# Token dictionary
-...  # (tokens dictionary unchanged for brevity)
+# ✅ Define tokens dictionary
+tokens = {
+    "WIF": ("dogwifcoin", "@dogwifcoin"),
+    "BONK": ("bonk", "@bonk_inu"),
+    "POPCAT": ("popcat", "@POPCATSOLANA"),
+    "TRUMP": ("official-trump", "@GetTrumpMemes"),
+    "TITCOIN": ("titcoin-2", "@TheTitCoin"),
+    "FARTCOIN": ("fartcoin", "@FartCoinOfSOL"),
+    "PAIN": ("pain", "@pain"),
+    "MEW": ("cat-in-a-dogs-world", "@mew"),
+    "AI16Z": ("ai16z", "@elizaos"),
+    "PNUT": ("peanut-the-squirrel", "@pnutsolana"),
+    "RFC": ("retard-finder-coin", "@RFindercoin"),
+    "FWOG": ("fwog", "@itsafwog"),
+    "JAILSTOOL": ("stool-prisondente", "@stoolpresidente"),
+    "MOODENG": ("moo-deng", "@MooDengSOL"),
+    "WEN": ("wen-4", "@wenwencoin"),
+    "ZEREBRO": ("zerebro", "@0xzerebro"),
+    "GHIBLI": ("ghiblification", "@ghibli"),
+    "SLERF": ("slerf", "@Slerfsol"),
+    "DARK": ("dark-eclipse", "@darkresearchai"),
+    "UFD": ("unicorn-fart-dust", "@BasementRon"),
+    "PENGU": ("pudgy-penguins", "@pudgypenguins"),
+    "GIGACHAD": ("gigachad-2", "@GIGACHAD_meme"),
+    "PONKE": ("ponke", "@ponkesol"),
+    "GOAT": ("goatseus-maximus", "@gospelofgoatse"),
+}
 
 INVEST_AMOUNT = 100
 
