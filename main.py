@@ -59,17 +59,15 @@ def format_mcap(m):
 
 def get_call_text(price_pct, vol_pct, market_cap):
     if price_pct >= 8 and vol_pct > 50:
-        return f"LONG — Breakout Momentum"
+        return "LONG"
     if 6 <= price_pct < 8 and market_cap > 350e6:
-        return f"LONG — Strong Large Cap"
+        return "LONG"
     if price_pct >= 12 and vol_pct > 180:
-        return f"LONG — Parabolic Spike"
-
+        return "LONG"
     if price_pct <= -3:
-        return f"SHORT — Downtrend"
+        return "SHORT"
     if vol_pct <= -20 and market_cap < 40e6:
-        return f"SHORT — Weak Small Cap"
-
+        return "SHORT"
     return "NOTHING"
 
 try:
