@@ -12,7 +12,7 @@ tokens = {
     "FARTCOIN":  ("fartcoin", "@FartCoinOfSOL"),
     "PAIN":      ("pain", "@pain"),
     "MEW":       ("cat-in-a-dogs-world", "@mew"),
-    "AI16Z":     ("ai16z", "@elizaos"),
+    "AI16Z":     ("ai16z", "@aixvc_agent"),
     "PNUT":      ("peanut-the-squirrel", "@pnutsolana"),
     "RFC":       ("retard-finder-coin", "@RFindercoin"),
     "FWOG":      ("fwog", "@itsafwog"),
@@ -25,7 +25,7 @@ tokens = {
     "PUMP":      ("pump-fun", "@pumpdotfun"),
     "UFD":       ("unicorn-fart-dust", "@BasementRon"),
     "PENGU":     ("pudgy-penguins", "@pudgypenguins"),
-    "GIGACHAD":  ("gigachad-2", "@GIGACHAD_meme"),
+    "GIGACHAD":  ("gigachad-2", "@Gigachad"),
     "PONKE":     ("ponke", "@ponkesol"),
     "GOAT":      ("goatseus-maximus", "@gospelofgoatse"),
 }
