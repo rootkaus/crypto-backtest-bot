@@ -2,6 +2,7 @@ import requests
 import datetime
 import os
 
+# ✅ Tokens dictionary with correct CoinGecko ID, Twitter handle, and exact webhook URL
 tokens = {
     "WIF": ("dogwifcoin", "@dogwifcoin", "https://maker.ifttt.com/trigger/post_wif/json/with/key/cLcVxJK2s0I_FF-5UNwjNq"),
     "BONK": ("bonk", "@bonk_inu", "https://maker.ifttt.com/trigger/post_bonk/json/with/key/cLcVxJK2s0I_FF-5UNwjNq"),
@@ -86,7 +87,7 @@ try:
     print("📤 Tweet content:")
     print(tweet)
 
-    res = requests.post(webhook_url, json={"JsonPayload": tweet})
+    res = requests.post(webhook_url, json={"value1": tweet})
     print("✅ Tweet sent!" if res.ok else f"⚠️ IFTTT error: {res.status_code}")
 
 except Exception as e:
