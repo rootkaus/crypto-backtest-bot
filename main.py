@@ -1,6 +1,8 @@
 import requests
 import datetime
+import os
 
+# ✅ Tokens dictionary with correct CoinGecko ID, Twitter handle, and exact webhook URL
 tokens = {
     "WIF": ("dogwifcoin", "@dogwifcoin", "https://maker.ifttt.com/trigger/post_wif/json/with/key/cLcVxJK2s0I_FF-5UNwjNq"),
     "BONK": ("bonk", "@bonk_inu", "https://maker.ifttt.com/trigger/post_bonk/json/with/key/cLcVxJK2s0I_FF-5UNwjNq"),
@@ -29,9 +31,16 @@ tokens = {
 }
 
 INVEST_AMOUNT = 100
-now = datetime.datetime.utcnow()
+
+force_token = os.getenv("FORCE_TOKEN")
 token_keys = list(tokens.keys())
-token_name = token_keys[now.hour % len(token_keys)]
+
+if force_token and force_token in tokens:
+    token_name = force_token
+else:
+    now = datetime.datetime.utcnow()
+    token_name = token_keys[now.hour % len(token_keys)]
+
 token_id, twitter_handle, webhook_url = tokens[token_name]
 
 print(f"🕐 Bot running | Selected token: ${token_name} ({token_id})")
