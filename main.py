@@ -79,9 +79,9 @@ try:
 
     tweet = (
         f"DEGEN DAILY — ft. ${token_name.lower()} {twitter_handle}\n\n"
-        f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%]\n\n"
+        f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%] (24h)\n\n"
         f"🏷️ Price: ${format_price_dynamic(price)} | Market Cap: {format_mcap(mcap)}\n"
-        f"🔊 Volume [24h]: {vol_trend}"
+        f"🔊 Volume: {vol_trend} (24h)"
     )
 
     print("📤 Tweet content:")
