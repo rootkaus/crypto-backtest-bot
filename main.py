@@ -57,6 +57,18 @@ def format_price_dynamic(p):
 def format_mcap(m):
     return f"${m/1e9:.1f}B" if m >= 1e9 else f"${m/1e6:.1f}M"
 
+def get_emoji(pct):
+    if pct >= 10:
+        return " 🔥"
+    elif pct >= 5:
+        return " 📈"
+    elif pct <= -10:
+        return " 💀"
+    elif pct <= -5:
+        return " 📉"
+    else:
+        return ""
+
 try:
     r = requests.get(f"https://api.coingecko.com/api/v3/coins/{token_id}")
     m = r.json()["market_data"]
@@ -65,6 +77,7 @@ try:
     price_pct = m["price_change_percentage_24h"]
     mcap = m["market_cap"]["usd"]
     value_now = INVEST_AMOUNT * (1 + price_pct / 100)
+    emoji = get_emoji(price_pct)
 
     chart = requests.get(
         f"https://api.coingecko.com/api/v3/coins/{token_id}/market_chart",
@@ -79,7 +92,7 @@ try:
 
     tweet = (
         f"DEGEN DAILY — ft. ${token_name.lower()} {twitter_handle}\n\n"
-        f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%] (24h)\n\n"
+        f"$100 → ${value_now:,.2f} [{price_pct:+.2f}%]{emoji} (24h)\n\n"
         f"🏷️ Price: ${format_price_dynamic(price)} | Market Cap: {format_mcap(mcap)}\n"
         f"🔊 Volume: {vol_trend} (24h)"
     )
